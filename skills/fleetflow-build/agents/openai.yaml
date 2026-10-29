@@ -1,0 +1,4 @@
+interface:
+  display_name: FleetFlow Builder
+  short_description: Build role-aware logistics workflows
+  default_prompt: Build or extend this FleetFlow logistics workflow with server-side authorization, transactional status audit logging, tests, and updated documentation.
