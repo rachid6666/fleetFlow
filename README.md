@@ -43,6 +43,7 @@ The current UI runs on typed demo data so the workflows can be reviewed before P
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — roles, boundaries, and key flows
+- [`docs/access-concept.md`](docs/access-concept.md) — server-side access rules and allowed/forbidden endpoint tests
 - [`docs/roadmap.md`](docs/roadmap.md) — phased implementation plan and acceptance criteria
 - [`docs/ai-prompts.md`](docs/ai-prompts.md) — prompts for building the major slices with coding agents
 - [`docs/blueprint.md`](docs/blueprint.md) — source blueprint captured from the original project plan
@@ -74,3 +75,37 @@ Open [http://localhost:3000](http://localhost:3000). The backend endpoints are a
 ## Security notes
 
 Never commit `.env`, database credentials, session secrets, or uploaded proof-of-delivery files. Passwords must be stored as slow hashes, and every status transition must be authorized and recorded in `StatusLog`.
+
+## Operations runbook
+
+### Services and ports
+
+- **FleetFlow web/API:** `3000` by default. Next.js serves the UI and `/api/*` routes from the same process.
+- **PostgreSQL:** `5432` when Prisma persistence is enabled. The current demo API uses in-memory data and can run without PostgreSQL.
+- **Authentik:** external OIDC provider; use the issuer configured by `AUTHENTIK_ISSUER`.
+- **Apache Superset:** `8088` only when the embedded analytics map is enabled.
+
+### Start commands
+
+```powershell
+npm install
+Copy-Item .env.example .env.local
+npm run dev
+```
+
+Optional database setup:
+
+```powershell
+npx prisma generate
+npx prisma migrate dev
+npm run db:seed
+```
+
+Verification:
+
+```powershell
+curl.exe -i "http://localhost:3000/api/health"
+curl.exe -i "http://localhost:3000/api/shipments/FF-2048-AL"
+```
+
+For the access-control test matrix, see [`docs/access-concept.md`](docs/access-concept.md). Stop the local process with `Ctrl+C` when finished.

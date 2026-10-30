@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getShipmentByTrackingCode, updateDemoShipmentStatus } from "@/lib/data";
 import { assertTransition } from "@/lib/shipment-rules";
 import type { ShipmentStatus } from "@/lib/types";
+import { accessError, getAccessActor, isAssignedTo } from "@/lib/access";
 
 type Context = { params: Promise<{ trackingCode: string }> };
 
@@ -13,9 +14,12 @@ export async function GET(_: Request, { params }: Context) {
 }
 
 export async function PATCH(request: Request, { params }: Context) {
+  const actor = await getAccessActor();
+  if (!actor) return accessError(401);
   const { trackingCode } = await params;
   const shipment = getShipmentByTrackingCode(trackingCode);
   if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
+  if (!isAssignedTo(actor, shipment.driverName)) return accessError(403);
 
   const body = (await request.json()) as { status?: ShipmentStatus; notes?: string };
   if (!body.status) return NextResponse.json({ error: "status is required" }, { status: 400 });
