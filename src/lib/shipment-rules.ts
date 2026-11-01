@@ -14,6 +14,13 @@ export function canTransition(from: ShipmentStatus, to: ShipmentStatus) {
 
 export function assertTransition(from: ShipmentStatus, to: ShipmentStatus) {
   if (!canTransition(from, to)) {
-    throw new Error(`Invalid shipment transition: ${from} → ${to}`);
+    throw new InvalidShipmentTransitionError(from, to);
+  }
+}
+
+export class InvalidShipmentTransitionError extends Error {
+  constructor(from: ShipmentStatus, to: ShipmentStatus) {
+    super(`Invalid shipment transition: ${from} → ${to}`);
+    this.name = "InvalidShipmentTransitionError";
   }
 }

@@ -1,4 +1,5 @@
 node_modules/
+.venv/
 .next/
 out/
 dist/
@@ -7,7 +8,9 @@ dist/
 !.env.example
 .fleetflow-git/
 coverage/
+*.tsbuildinfo
 .DS_Store
 *.log
 prisma/*.db
 prisma/*.db-journal
+.neon

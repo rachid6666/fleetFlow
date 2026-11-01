@@ -21,24 +21,16 @@ docs/                         Product, architecture, roadmap, and AI prompts
 prisma/schema.prisma          Initial relational data model
 skills/fleetflow-build/       Reusable Codex skill for future FleetFlow work
 src/app/                      Admin, driver, and customer tracking screens
-src/lib/                      Typed demo data and domain types
+src/lib/                      Prisma data access and domain types
 .env.example                  Required environment variables
 CONTRIBUTING.md               Development and delivery conventions
 ```
 
-## Local implementation starting point
+## Current data model
 
-```bash
-npx create-next-app@latest fleetflow --typescript --tailwind --app
-cd fleetflow
-npm install @prisma/client next-auth @auth/prisma-adapter bcrypt
-npm install -D prisma
-cp .env.example .env
-npx prisma migrate dev --name init
-npm run db:seed
-```
+The application reads shipments from PostgreSQL through Prisma. Shipment status changes are authenticated and persist an audit event in the same transaction. Public tracking responses omit customer, driver, and internal-note fields.
 
-The current UI runs on typed demo data so the workflows can be reviewed before PostgreSQL and Auth.js are configured. Follow [`docs/roadmap.md`](docs/roadmap.md) to replace the demo store with Prisma reads, authentication, and transactional server actions.
+The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. This preserves its source entities and relationships without creating synthetic Auth.js accounts or converting historical loads into mutable FleetFlow shipments.
 
 ## Documentation
 
@@ -46,6 +38,7 @@ The current UI runs on typed demo data so the workflows can be reviewed before P
 - [`docs/roadmap.md`](docs/roadmap.md) — phased implementation plan and acceptance criteria
 - [`docs/ai-prompts.md`](docs/ai-prompts.md) — prompts for building the major slices with coding agents
 - [`docs/blueprint.md`](docs/blueprint.md) — source blueprint captured from the original project plan
+- [`docs/data-and-database.md`](docs/data-and-database.md) — what reads from Neon, Kaggle table relationships, and database setup/import
 - [`skills/fleetflow-build/SKILL.md`](skills/fleetflow-build/SKILL.md) — reusable Codex skill
 
 ## Product screens
@@ -66,10 +59,22 @@ From the project folder:
 ```bash
 npm install
 Copy-Item .env.example .env.local
+npm run db:deploy
+npm run db:seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The backend endpoints are available at `/api/health`, `/api/shipments`, and `/api/shipments/:trackingCode`. The current API uses an in-memory demo store; PostgreSQL persistence is the next backend milestone.
+Set `DATABASE_URL` to Neon's pooled connection string for app queries and `DATABASE_URL_UNPOOLED` to its direct connection string for migrations. Neon CLI deployments populate both variables in `.env`. Run `npm run db:deploy` to apply checked-in Prisma migrations and `npm run db:seed` to provision the reference branches.
+
+To load the MIT-licensed [Kaggle Logistics Operations Database](https://www.kaggle.com/datasets/yogape/logistics-operations-database), download it with `kagglehub.dataset_download("yogape/logistics-operations-database")`, then run:
+
+```powershell
+npm run db:import:kaggle -- --source "C:\path\to\logistics-operations-database"
+```
+
+The importer maps all 14 CSV files into typed relational tables (`customers`, `drivers`, `loads`, `trips`, `delivery_events`, and related tables), with primary keys and foreign-key relations matching the dataset schema. It imports parent tables before dependent records, preserves optional foreign keys as nullable relations, and skips existing keys when re-run. The admin overview fetches logistics metrics and recent joined loads directly from Neon. Use `npm run db:verify:kaggle` to check imported row totals and relational constraints.
+
+Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection, `/api/shipments` requires an admin or driver session, and `/api/shipments/:trackingCode` provides public tracking fields while requiring an admin or assigned-driver session for status changes.
 
 ## Security notes
 

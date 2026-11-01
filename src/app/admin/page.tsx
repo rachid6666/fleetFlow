@@ -1,13 +1,100 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
-import { StatusBadge } from "@/components/status-badge";
-import { demoShipments } from "@/lib/data";
+import { getLogisticsDashboard } from "@/lib/data";
 
-export default function AdminPage() {
-  const active = demoShipments.filter((shipment) => shipment.status !== "DELIVERED").length;
-  const exceptions = demoShipments.filter((shipment) => shipment.status === "EXCEPTION").length;
-  return <div className="app-shell"><Sidebar /><main className="main"><div className="topbar"><div><div className="eyebrow">Tuesday · Operations center</div><h1>Good morning, Amine.</h1><p className="subtitle">Here is what is moving across your fleet today.</p></div><div className="avatar">AM</div></div>
-    <section className="metrics"><div className="metric-card"><div className="metric-label">Active shipments</div><div className="metric-value">{active}</div><div className="metric-note">↑ 12% this week</div></div><div className="metric-card"><div className="metric-label">In transit</div><div className="metric-value">1</div><div className="metric-note">On schedule</div></div><div className="metric-card"><div className="metric-label">Delivered today</div><div className="metric-value">24</div><div className="metric-note">↑ 8% vs yesterday</div></div><div className="metric-card"><div className="metric-label">Needs attention</div><div className="metric-value">{exceptions}</div><div className="metric-note" style={{ color: "var(--red)" }}>Review exception</div></div></section>
-    <div className="content-grid"><section className="panel"><div className="panel-heading"><h2>Recent shipments</h2><Link href="/admin/shipments">View all →</Link></div><table className="shipment-table"><thead><tr><th>Shipment</th><th>Status</th><th>Driver</th><th>Updated</th></tr></thead><tbody>{demoShipments.map((shipment) => <tr key={shipment.id}><td><div className="tracking-code">{shipment.trackingCode}</div><div className="route">{shipment.origin} → {shipment.destination}</div></td><td><StatusBadge status={shipment.status} /></td><td>{shipment.driverName ?? "Unassigned"}</td><td>{shipment.updatedAt}</td></tr>)}</tbody></table></section><section className="panel"><div className="panel-heading"><h2>Live activity</h2></div><div className="activity-list"><div className="activity"><span className="activity-dot" /><div><strong>Shipment FF-2048-AL updated</strong><p>In transit · Relayed by Nadia Benali</p><time>12 min ago</time></div></div><div className="activity"><span className="activity-dot" /><div><strong>Delivery completed</strong><p>FF-2051-AL delivered to Northline Retail</p><time>Yesterday</time></div></div><div className="activity"><span className="activity-dot" /><div><strong>Exception flagged</strong><p>FF-2050-AL needs address confirmation</p><time>1 hr ago</time></div></div></div></section></div>
-  </main></div>;
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const dashboard = await getLogisticsDashboard();
+  const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+  const number = new Intl.NumberFormat("en-US");
+
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <main className="main">
+        <div className="topbar">
+          <div>
+            <div className="eyebrow">Operations center · Kaggle logistics data</div>
+            <h1>Fleet performance</h1>
+            <p className="subtitle">
+              Live metrics from the logistics dataset stored in Neon.
+            </p>
+          </div>
+          <div className="avatar">FF</div>
+        </div>
+        <section className="metrics">
+          <div className="metric-card">
+            <div className="metric-label">Total loads</div>
+            <div className="metric-value">{number.format(dashboard.totalLoads)}</div>
+            <div className="metric-note">All imported load records</div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-label">Load revenue</div>
+            <div className="metric-value">{currency.format(dashboard.totalRevenue)}</div>
+            <div className="metric-note">Sum of recorded load revenue</div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-label">Miles driven</div>
+            <div className="metric-value">{number.format(dashboard.totalMiles)}</div>
+            <div className="metric-note">Recorded trip distance</div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-label">Active drivers</div>
+            <div className="metric-value">{number.format(dashboard.activeDrivers)}</div>
+            <div className="metric-note">{number.format(dashboard.activeTrucks)} active trucks</div>
+          </div>
+        </section>
+        <div className="content-grid">
+          <section className="panel">
+            <div className="panel-heading">
+              <h2>Latest loads</h2>
+              <Link href="/admin/shipments">FleetFlow shipments →</Link>
+            </div>
+            <table className="shipment-table">
+              <thead>
+                <tr>
+                  <th>Load</th>
+                  <th>Customer</th>
+                  <th>Route</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboard.recentLoads.map((load) => (
+                  <tr key={load.loadId}>
+                    <td>
+                      <div className="tracking-code">{load.loadId}</div>
+                      <div className="route">{load.loadType} · {load.loadStatus}</div>
+                    </td>
+                    <td>{load.customer.customerName}</td>
+                    <td>
+                      {load.route.originCity}, {load.route.originState} →{" "}
+                      {load.route.destinationCity}, {load.route.destinationState}
+                    </td>
+                    <td>{currency.format(load.revenue.toNumber())}</td>
+                  </tr>
+                ))}
+                {dashboard.recentLoads.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No imported loads were found in Neon.</td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </section>
+          <section className="panel">
+            <div className="panel-heading">
+              <h2>Fleet health</h2>
+            </div>
+            <div className="activity-list">
+              <div className="activity"><span className="activity-dot" /><div><strong>On-time delivery rate</strong><p>{dashboard.onTimeDeliveryRate.toFixed(1)}% across {number.format(dashboard.totalDeliveryEvents)} delivery events</p></div></div>
+              <div className="activity"><span className="activity-dot" /><div><strong>Average fuel efficiency</strong><p>{dashboard.averageMpg.toFixed(2)} MPG across recorded trips</p></div></div>
+              <div className="activity"><span className="activity-dot" /><div><strong>Safety incidents</strong><p>{number.format(dashboard.safetyIncidents)} records in the imported dataset</p></div></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
 }
