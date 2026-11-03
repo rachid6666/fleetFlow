@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 generator client {
@@ -52,23 +53,23 @@ model Branch {
 }
 
 model Shipment {
-  id           String         @id @default(cuid())
-  trackingCode String         @unique @default(uuid())
-  origin       String
-  destination  String
-  originBranchId String?
-  originBranch   Branch?        @relation("OriginBranch", fields: [originBranchId], references: [id])
+  id                  String         @id @default(cuid())
+  trackingCode        String         @unique @default(uuid())
+  origin              String
+  destination         String
+  originBranchId      String?
+  originBranch        Branch?        @relation("OriginBranch", fields: [originBranchId], references: [id])
   destinationBranchId String?
-  destinationBranch   Branch?   @relation("DestinationBranch", fields: [destinationBranchId], references: [id])
-  status       ShipmentStatus @default(PENDING)
-  notes        String?
-  driverId     String?
-  driver       User?          @relation("DriverShipments", fields: [driverId], references: [id])
-  customerId   String
-  customer     User           @relation("CustomerShipments", fields: [customerId], references: [id])
-  updates      StatusLog[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  destinationBranch   Branch?        @relation("DestinationBranch", fields: [destinationBranchId], references: [id])
+  status              ShipmentStatus @default(PENDING)
+  notes               String?
+  driverId            String?
+  driver              User?          @relation("DriverShipments", fields: [driverId], references: [id])
+  customerId          String
+  customer            User           @relation("CustomerShipments", fields: [customerId], references: [id])
+  updates             StatusLog[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([status])
   @@index([driverId, status])
@@ -82,9 +83,289 @@ model StatusLog {
   shipmentId  String
   shipment    Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   status      ShipmentStatus
+  actorEmail  String?
   location    String?
   description String
   createdAt   DateTime       @default(now())
 
   @@index([shipmentId, createdAt])
+}
+
+model KaggleCustomer {
+  customerId             String       @id @map("customer_id")
+  customerName           String       @map("customer_name")
+  customerType           String       @map("customer_type")
+  creditTermsDays        Int          @map("credit_terms_days")
+  primaryFreightType     String       @map("primary_freight_type")
+  accountStatus          String       @map("account_status")
+  contractStartDate      DateTime     @map("contract_start_date") @db.Date
+  annualRevenuePotential Decimal      @map("annual_revenue_potential") @db.Decimal(14, 2)
+  loads                  KaggleLoad[]
+
+  @@map("customers")
+}
+
+model KaggleDriver {
+  driverId         String                      @id @map("driver_id")
+  firstName        String                      @map("first_name")
+  lastName         String                      @map("last_name")
+  hireDate         DateTime                    @map("hire_date") @db.Date
+  terminationDate  DateTime?                   @map("termination_date") @db.Date
+  licenseNumber    String                      @map("license_number")
+  licenseState     String                      @map("license_state")
+  dateOfBirth      DateTime                    @map("date_of_birth") @db.Date
+  homeTerminal     String                      @map("home_terminal")
+  employmentStatus String                      @map("employment_status")
+  cdlClass         String                      @map("cdl_class")
+  yearsExperience  Int                         @map("years_experience")
+  trips            KaggleTrip[]
+  fuelPurchases    KaggleFuelPurchase[]
+  safetyIncidents  KaggleSafetyIncident[]
+  monthlyMetrics   KaggleDriverMonthlyMetric[]
+
+  @@map("drivers")
+}
+
+model KaggleTruck {
+  truckId             String                         @id @map("truck_id")
+  unitNumber          Int                            @map("unit_number")
+  make                String
+  modelYear           Int                            @map("model_year")
+  vin                 String
+  acquisitionDate     DateTime                       @map("acquisition_date") @db.Date
+  acquisitionMileage  Int                            @map("acquisition_mileage")
+  fuelType            String                         @map("fuel_type")
+  tankCapacityGallons Decimal                        @map("tank_capacity_gallons") @db.Decimal(8, 2)
+  status              String
+  homeTerminal        String                         @map("home_terminal")
+  trips               KaggleTrip[]
+  fuelPurchases       KaggleFuelPurchase[]
+  maintenanceRecords  KaggleMaintenanceRecord[]
+  safetyIncidents     KaggleSafetyIncident[]
+  utilizationMetrics  KaggleTruckUtilizationMetric[]
+
+  @@map("trucks")
+}
+
+model KaggleTrailer {
+  trailerId       String       @id @map("trailer_id")
+  trailerNumber   Int          @map("trailer_number")
+  trailerType     String       @map("trailer_type")
+  lengthFeet      Int          @map("length_feet")
+  modelYear       Int          @map("model_year")
+  vin             String
+  acquisitionDate DateTime     @map("acquisition_date") @db.Date
+  status          String
+  currentLocation String       @map("current_location")
+  trips           KaggleTrip[]
+
+  @@map("trailers")
+}
+
+model KaggleFacility {
+  facilityId     String                @id @map("facility_id")
+  facilityName   String                @map("facility_name")
+  facilityType   String                @map("facility_type")
+  city           String
+  state          String
+  latitude       Decimal               @db.Decimal(9, 6)
+  longitude      Decimal               @db.Decimal(9, 6)
+  dockDoors      Int                   @map("dock_doors")
+  operatingHours String                @map("operating_hours")
+  deliveryEvents KaggleDeliveryEvent[]
+
+  @@map("facilities")
+}
+
+model KaggleRoute {
+  routeId              String       @id @map("route_id")
+  originCity           String       @map("origin_city")
+  originState          String       @map("origin_state")
+  destinationCity      String       @map("destination_city")
+  destinationState     String       @map("destination_state")
+  typicalDistanceMiles Int          @map("typical_distance_miles")
+  baseRatePerMile      Decimal      @map("base_rate_per_mile") @db.Decimal(8, 3)
+  fuelSurchargeRate    Decimal      @map("fuel_surcharge_rate") @db.Decimal(6, 4)
+  typicalTransitDays   Int          @map("typical_transit_days")
+  loads                KaggleLoad[]
+
+  @@map("routes")
+}
+
+model KaggleLoad {
+  loadId             String                @id @map("load_id")
+  customerId         String                @map("customer_id")
+  routeId            String                @map("route_id")
+  loadDate           DateTime              @map("load_date") @db.Date
+  loadType           String                @map("load_type")
+  weightLbs          Int                   @map("weight_lbs")
+  pieces             Int
+  revenue            Decimal               @db.Decimal(12, 2)
+  fuelSurcharge      Decimal               @map("fuel_surcharge") @db.Decimal(12, 2)
+  accessorialCharges Decimal               @map("accessorial_charges") @db.Decimal(12, 2)
+  loadStatus         String                @map("load_status")
+  bookingType        String                @map("booking_type")
+  customer           KaggleCustomer        @relation(fields: [customerId], references: [customerId], onDelete: Restrict)
+  route              KaggleRoute           @relation(fields: [routeId], references: [routeId], onDelete: Restrict)
+  trip               KaggleTrip?
+  deliveryEvents     KaggleDeliveryEvent[]
+
+  @@index([customerId])
+  @@index([routeId])
+  @@index([loadDate])
+  @@map("loads")
+}
+
+model KaggleTrip {
+  tripId              String                 @id @map("trip_id")
+  loadId              String                 @unique @map("load_id")
+  driverId            String?                @map("driver_id")
+  truckId             String?                @map("truck_id")
+  trailerId           String?                @map("trailer_id")
+  dispatchDate        DateTime               @map("dispatch_date") @db.Date
+  actualDistanceMiles Int                    @map("actual_distance_miles")
+  actualDurationHours Decimal                @map("actual_duration_hours") @db.Decimal(8, 2)
+  fuelGallonsUsed     Decimal                @map("fuel_gallons_used") @db.Decimal(8, 2)
+  averageMpg          Decimal                @map("average_mpg") @db.Decimal(6, 2)
+  idleTimeHours       Decimal                @map("idle_time_hours") @db.Decimal(8, 2)
+  tripStatus          String                 @map("trip_status")
+  load                KaggleLoad             @relation(fields: [loadId], references: [loadId], onDelete: Restrict)
+  driver              KaggleDriver?          @relation(fields: [driverId], references: [driverId], onDelete: SetNull)
+  truck               KaggleTruck?           @relation(fields: [truckId], references: [truckId], onDelete: SetNull)
+  trailer             KaggleTrailer?         @relation(fields: [trailerId], references: [trailerId], onDelete: SetNull)
+  fuelPurchases       KaggleFuelPurchase[]
+  deliveryEvents      KaggleDeliveryEvent[]
+  safetyIncidents     KaggleSafetyIncident[]
+
+  @@index([driverId])
+  @@index([truckId])
+  @@index([trailerId])
+  @@index([dispatchDate])
+  @@map("trips")
+}
+
+model KaggleFuelPurchase {
+  fuelPurchaseId String        @id @map("fuel_purchase_id")
+  tripId         String        @map("trip_id")
+  truckId        String?       @map("truck_id")
+  driverId       String?       @map("driver_id")
+  purchaseDate   DateTime      @map("purchase_date") @db.Timestamp(6)
+  locationCity   String        @map("location_city")
+  locationState  String        @map("location_state")
+  gallons        Decimal       @db.Decimal(8, 2)
+  pricePerGallon Decimal       @map("price_per_gallon") @db.Decimal(6, 3)
+  totalCost      Decimal       @map("total_cost") @db.Decimal(10, 2)
+  fuelCardNumber String?       @map("fuel_card_number")
+  trip           KaggleTrip    @relation(fields: [tripId], references: [tripId], onDelete: Restrict)
+  truck          KaggleTruck?  @relation(fields: [truckId], references: [truckId], onDelete: SetNull)
+  driver         KaggleDriver? @relation(fields: [driverId], references: [driverId], onDelete: SetNull)
+
+  @@index([tripId])
+  @@index([truckId])
+  @@index([driverId])
+  @@index([purchaseDate])
+  @@map("fuel_purchases")
+}
+
+model KaggleMaintenanceRecord {
+  maintenanceId      String      @id @map("maintenance_id")
+  truckId            String      @map("truck_id")
+  maintenanceDate    DateTime    @map("maintenance_date") @db.Date
+  maintenanceType    String      @map("maintenance_type")
+  odometerReading    Int         @map("odometer_reading")
+  laborHours         Decimal     @map("labor_hours") @db.Decimal(8, 2)
+  laborCost          Decimal     @map("labor_cost") @db.Decimal(12, 2)
+  partsCost          Decimal     @map("parts_cost") @db.Decimal(12, 2)
+  totalCost          Decimal     @map("total_cost") @db.Decimal(12, 2)
+  facilityLocation   String      @map("facility_location")
+  downtimeHours      Decimal     @map("downtime_hours") @db.Decimal(8, 2)
+  serviceDescription String      @map("service_description")
+  truck              KaggleTruck @relation(fields: [truckId], references: [truckId], onDelete: Restrict)
+
+  @@index([truckId, maintenanceDate])
+  @@map("maintenance_records")
+}
+
+model KaggleDeliveryEvent {
+  eventId           String         @id @map("event_id")
+  loadId            String         @map("load_id")
+  tripId            String         @map("trip_id")
+  eventType         String         @map("event_type")
+  facilityId        String         @map("facility_id")
+  scheduledDatetime DateTime       @map("scheduled_datetime") @db.Timestamp(6)
+  actualDatetime    DateTime       @map("actual_datetime") @db.Timestamp(6)
+  detentionMinutes  Int            @map("detention_minutes")
+  onTimeFlag        Boolean        @map("on_time_flag")
+  locationCity      String         @map("location_city")
+  locationState     String         @map("location_state")
+  load              KaggleLoad     @relation(fields: [loadId], references: [loadId], onDelete: Restrict)
+  trip              KaggleTrip     @relation(fields: [tripId], references: [tripId], onDelete: Restrict)
+  facility          KaggleFacility @relation(fields: [facilityId], references: [facilityId], onDelete: Restrict)
+
+  @@index([loadId, actualDatetime])
+  @@index([tripId])
+  @@index([facilityId])
+  @@map("delivery_events")
+}
+
+model KaggleSafetyIncident {
+  incidentId        String        @id @map("incident_id")
+  tripId            String        @map("trip_id")
+  truckId           String?       @map("truck_id")
+  driverId          String?       @map("driver_id")
+  incidentDate      DateTime      @map("incident_date") @db.Timestamp(6)
+  incidentType      String        @map("incident_type")
+  locationCity      String        @map("location_city")
+  locationState     String        @map("location_state")
+  atFaultFlag       Boolean       @map("at_fault_flag")
+  injuryFlag        Boolean       @map("injury_flag")
+  vehicleDamageCost Decimal       @map("vehicle_damage_cost") @db.Decimal(12, 2)
+  cargoDamageCost   Decimal       @map("cargo_damage_cost") @db.Decimal(12, 2)
+  claimAmount       Decimal       @map("claim_amount") @db.Decimal(12, 2)
+  preventableFlag   Boolean       @map("preventable_flag")
+  description       String
+  trip              KaggleTrip    @relation(fields: [tripId], references: [tripId], onDelete: Restrict)
+  truck             KaggleTruck?  @relation(fields: [truckId], references: [truckId], onDelete: SetNull)
+  driver            KaggleDriver? @relation(fields: [driverId], references: [driverId], onDelete: SetNull)
+
+  @@index([tripId])
+  @@index([truckId])
+  @@index([driverId])
+  @@index([incidentDate])
+  @@map("safety_incidents")
+}
+
+model KaggleDriverMonthlyMetric {
+  driverId           String       @map("driver_id")
+  month              DateTime     @db.Date
+  tripsCompleted     Int          @map("trips_completed")
+  totalMiles         Int          @map("total_miles")
+  totalRevenue       Decimal      @map("total_revenue") @db.Decimal(12, 2)
+  averageMpg         Decimal      @map("average_mpg") @db.Decimal(6, 2)
+  totalFuelGallons   Decimal      @map("total_fuel_gallons") @db.Decimal(10, 2)
+  onTimeDeliveryRate Decimal      @map("on_time_delivery_rate") @db.Decimal(6, 4)
+  averageIdleHours   Decimal      @map("average_idle_hours") @db.Decimal(8, 2)
+  driver             KaggleDriver @relation(fields: [driverId], references: [driverId], onDelete: Restrict)
+
+  @@id([driverId, month])
+  @@index([month])
+  @@map("driver_monthly_metrics")
+}
+
+model KaggleTruckUtilizationMetric {
+  truckId           String      @map("truck_id")
+  month             DateTime    @db.Date
+  tripsCompleted    Int         @map("trips_completed")
+  totalMiles        Int         @map("total_miles")
+  totalRevenue      Decimal     @map("total_revenue") @db.Decimal(12, 2)
+  averageMpg        Decimal     @map("average_mpg") @db.Decimal(6, 2)
+  maintenanceEvents Int         @map("maintenance_events")
+  maintenanceCost   Decimal     @map("maintenance_cost") @db.Decimal(12, 2)
+  downtimeHours     Decimal     @map("downtime_hours") @db.Decimal(8, 2)
+  utilizationRate   Decimal     @map("utilization_rate") @db.Decimal(6, 4)
+  truck             KaggleTruck @relation(fields: [truckId], references: [truckId], onDelete: Restrict)
+
+  @@id([truckId, month])
+  @@index([month])
+  @@map("truck_utilization_metrics")
 }

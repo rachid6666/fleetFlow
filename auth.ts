@@ -8,7 +8,11 @@ type AuthentikProfile = {
   groups?: string[];
 };
 
-type AppRole = "ADMIN" | "DRIVER" | "CUSTOMER";
+type UserRole = "ADMIN" | "DRIVER" | "CUSTOMER";
+
+function isUserRole(role: unknown): role is UserRole {
+  return role === "ADMIN" || role === "DRIVER" || role === "CUSTOMER";
+}
 
 function roleFromGroups(groups: string[] = []) {
   if (groups.includes(process.env.AUTHENTIK_ADMIN_GROUP ?? "FleetFlow Admins")) return "ADMIN" as const;
@@ -46,7 +50,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user) session.user.role = (token.role as AppRole | undefined) ?? "CUSTOMER";
+      if (session.user) {
+        session.user.role = isUserRole(token.role) ? token.role : "CUSTOMER";
+      }
       return session;
     },
   },

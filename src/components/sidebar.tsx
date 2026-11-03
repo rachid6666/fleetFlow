@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { auth, signOut } from "../../auth";
+import { SidebarNavigation } from "./sidebar-navigation";
 
-export function Sidebar() {
+export async function Sidebar() {
+  const session = await auth();
+
   return (
     <aside className="sidebar">
       <Link className="brand" href="/">
@@ -8,13 +12,15 @@ export function Sidebar() {
         <span>FleetFlow</span>
       </Link>
       <div className="workspace-label">OPERATIONS CENTER</div>
-      <nav className="nav-list" aria-label="Main navigation">
-        <Link href="/">Network home</Link>
-        <Link href="/admin">Overview</Link>
-        <Link href="/admin/shipments">Shipments</Link>
-        <Link href="/driver">Driver mobile view</Link>
-        <Link href="/track">Customer tracking</Link>
-      </nav>
+      <SidebarNavigation />
+      {session?.user ? (
+        <form className="sidebar-logout" action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/login" });
+          }}>
+          <button className="logout-button" type="submit">Sign out</button>
+        </form>
+      ) : null}
       <div className="sidebar-footer">
         <span className="online-dot" /> System operational
         <small>FleetFlow Network · v0.1</small>

@@ -10,12 +10,18 @@
     "typecheck": "tsc --noEmit",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
     "db:migrate": "prisma migrate dev",
+    "db:import:kaggle": "tsx prisma/import-kaggle.ts",
+    "db:verify:kaggle": "tsx prisma/verify-kaggle.ts",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@neon/config": "^1.10.0",
+    "@neon/env": "^1.6.8",
     "@prisma/client": "^6.17.0",
     "@superset-ui/embedded-sdk": "^0.3.0",
+    "csv-parse": "^7.0.3",
     "next": "^15.5.0",
     "next-auth": "^5.0.0-beta.32",
     "react": "^19.1.0",
