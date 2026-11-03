@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="88" viewBox="0 0 420 88" fill="none">
+  <rect x="4" y="4" width="80" height="80" rx="20" fill="#1E9B76"/>
+  <path d="M56 25H31V39H53V51H31V66H17V25C17 17.268 23.268 11 31 11H56V25Z" fill="#FFFFFF"/>
+  <text x="104" y="59" fill="#10212B" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-2">FleetFlow</text>
+</svg>

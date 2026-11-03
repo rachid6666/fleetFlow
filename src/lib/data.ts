@@ -139,6 +139,41 @@ export async function getLogisticsDashboard() {
   };
 }
 
+export async function getShipmentAlerts(now = new Date()) {
+  const staleBefore = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const where: Prisma.ShipmentWhereInput = {
+    OR: [
+      { status: "EXCEPTION" },
+      { status: "IN_TRANSIT", updatedAt: { lt: staleBefore } },
+    ],
+  };
+
+  const [count, shipments] = await Promise.all([
+    prisma.shipment.count({ where }),
+    prisma.shipment.findMany({
+      where,
+      take: 6,
+      orderBy: [{ status: "asc" }, { updatedAt: "asc" }],
+      select: {
+        trackingCode: true,
+        origin: true,
+        destination: true,
+        status: true,
+        updatedAt: true,
+        notes: true,
+      },
+    }),
+  ]);
+
+  return {
+    count,
+    items: shipments.map((shipment) => ({
+      ...shipment,
+      staleHours: Math.floor((now.getTime() - shipment.updatedAt.getTime()) / 3_600_000),
+    })),
+  };
+}
+
 export async function getShipmentByTrackingCode(code: string) {
   const shipment = await prisma.shipment.findFirst({
     where: { trackingCode: { equals: code.trim(), mode: "insensitive" } },

@@ -43,7 +43,7 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 
 ## Product screens
 
-- `/admin` — operational metrics, recent shipments, and live activity
+- `/admin` — operational metrics, recent shipments, and alerts for exceptions or shipments without an update for 24 hours
 - `/admin/shipments` — shipment desk with routes, statuses, drivers, customers, and ETAs
 - `/driver` — mobile-oriented assigned shipment workflow with status actions
 - `/track` — customer tracking code lookup and event timeline
@@ -75,6 +75,8 @@ npm run db:import:kaggle -- --source "C:\path\to\logistics-operations-database"
 The importer maps all 14 CSV files into typed relational tables (`customers`, `drivers`, `loads`, `trips`, `delivery_events`, and related tables), with primary keys and foreign-key relations matching the dataset schema. It imports parent tables before dependent records, preserves optional foreign keys as nullable relations, and skips existing keys when re-run. The admin overview fetches logistics metrics and recent joined loads directly from Neon. Use `npm run db:verify:kaggle` to check imported row totals and relational constraints.
 
 Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection, `/api/shipments` requires an admin or driver session, and `/api/shipments/:trackingCode` provides public tracking fields while requiring an admin or assigned-driver session for status changes.
+
+The admin overview flags shipments marked `EXCEPTION` and shipments still `IN_TRANSIT` with no update for at least 24 hours. The stale-update threshold is a monitoring signal, not an ETA-based late-delivery prediction; live shipments do not currently store an ETA.
 
 ## Security notes
 

@@ -1,0 +1,52 @@
+:root {
+  --pf-v5-global--primary-color--100: #1e9b76;
+  --pf-v5-global--primary-color--200: #117057;
+  --pf-v5-global--link--Color: #117057;
+}
+
+.pf-c-login {
+  background: linear-gradient(135deg, #102f32 0%, #174b45 55%, #1e9b76 100%) !important;
+}
+
+.pf-c-login__main {
+  color: #10212b !important;
+  background: #fbfcfb !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 70px rgba(16, 33, 43, 0.22) !important;
+}
+
+.pf-c-login__main-header,
+.pf-c-login__main-body,
+.pf-c-title,
+.pf-c-form__label-text {
+  color: #10212b !important;
+}
+
+.pf-c-form-control {
+  color: #10212b !important;
+  background: #ffffff !important;
+  border-bottom: 2px solid #d5e5df !important;
+}
+
+.pf-c-form-control:focus {
+  border-bottom-color: #1e9b76 !important;
+  box-shadow: 0 0 0 3px rgba(30, 155, 118, 0.16) !important;
+}
+
+.pf-c-button.pf-m-primary {
+  background: #1e9b76 !important;
+  border-color: #1e9b76 !important;
+  border-radius: 9px !important;
+  font-weight: 700 !important;
+}
+
+.pf-c-button.pf-m-primary:hover {
+  background: #117057 !important;
+  border-color: #117057 !important;
+}
+
+.pf-c-login__footer,
+.pf-c-login__footer a {
+  color: #fbfcfb !important;
+  background: transparent !important;
+}

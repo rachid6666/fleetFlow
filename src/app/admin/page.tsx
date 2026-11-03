@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
-import { getLogisticsDashboard } from "@/lib/data";
+import { getLogisticsDashboard, getShipmentAlerts } from "@/lib/data";
+import { statusLabels } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const dashboard = await getLogisticsDashboard();
+  const [dashboard, alerts] = await Promise.all([
+    getLogisticsDashboard(),
+    getShipmentAlerts(),
+  ]);
   const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const number = new Intl.NumberFormat("en-US");
 
@@ -23,6 +27,57 @@ export default async function AdminPage() {
           </div>
           <div className="avatar">FF</div>
         </div>
+        <section className={`panel alerts-panel${alerts.count ? " has-alerts" : ""}`}>
+          <div className="panel-heading">
+            <div>
+              <div className="eyebrow">Operations watch</div>
+              <h2>Needs attention <span className="alert-count">{number.format(alerts.count)}</span></h2>
+            </div>
+            <Link href="/admin/shipments">Review shipments →</Link>
+          </div>
+          {alerts.items.length ? (
+            <>
+              <div className="alerts-list">
+                {alerts.items.map((alert) => (
+                  <article className="alert-item" key={alert.trackingCode}>
+                    <span
+                      className={`alert-indicator${alert.status === "EXCEPTION" ? " is-exception" : ""}`}
+                      aria-hidden="true"
+                    />
+                    <div className="alert-content">
+                      <div className="alert-title">
+                        <strong>{alert.trackingCode}</strong>
+                        <span className={`status-badge status-${alert.status.toLowerCase()}`}>
+                          {statusLabels[alert.status]}
+                        </span>
+                      </div>
+                      <p>{alert.origin} → {alert.destination}</p>
+                      <small>
+                        {alert.status === "EXCEPTION"
+                          ? alert.notes || "Shipment is marked for review."
+                          : `No update for ${alert.staleHours} hours.`}
+                      </small>
+                    </div>
+                    <Link
+                      className="alert-link"
+                      href="/admin/shipments"
+                      aria-label={`Review shipment ${alert.trackingCode}`}
+                    >
+                      Review
+                    </Link>
+                  </article>
+                ))}
+              </div>
+              {alerts.count > alerts.items.length ? (
+                <p className="alerts-overflow">
+                  Showing {alerts.items.length} of {number.format(alerts.count)} alerts.
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="alerts-clear">All shipments are up to date. No active exceptions.</p>
+          )}
+        </section>
         <section className="metrics">
           <div className="metric-card">
             <div className="metric-label">Total loads</div>
