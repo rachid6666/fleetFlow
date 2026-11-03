@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+.fleetflow-git
+prisma/*.db
+prisma/*.db-journal
+*.log

@@ -53,19 +53,38 @@ Authentication is prepared for Authentik OIDC through Auth.js. See [`docs/authen
 
 Apache Superset map embedding is also prepared. Follow [`docs/superset.md`](docs/superset.md) to run Superset locally and connect a dashboard.
 
-## Start locally
+## Start locally with Docker Compose
 
-From the project folder:
+This is the reproducible fresh-clone path. It starts Next.js, PostgreSQL, and n8n with local-only example values; it does not use Vercel or a hosted database.
 
-```bash
-npm install
-Copy-Item .env.example .env.local
-npm run db:deploy
-npm run db:seed
-npm run dev
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
 ```
 
-Set `DATABASE_URL` to Neon's pooled connection string for app queries and `DATABASE_URL_UNPOOLED` to its direct connection string for migrations. Neon CLI deployments populate both variables in `.env`. Run `npm run db:deploy` to apply checked-in Prisma migrations and `npm run db:seed` to provision the reference branches.
+The app container waits for PostgreSQL and n8n health checks, applies checked-in Prisma migrations, and runs the repeatable seed before starting. Open `http://localhost:3000`, n8n at `http://localhost:5678`, and health at `http://localhost:3000/api/health`. The seeded tracking code is `FF-LOCAL-001`. Stop with `Ctrl+C`; do not use `docker compose down -v`, because the PostgreSQL and n8n named volumes are intentionally persistent.
+
+For a host-only development loop, keep the Compose PostgreSQL running and use the repository's npm scripts with a host-resolvable `DATABASE_URL`; production Vercel/Neon settings belong in a separate deployment environment, not in `.env.example`.
+
+## n8n workflows
+
+Import both files in n8n from `Workflows` → `Import from File`:
+
+- `workflows/fleetflow-handover.json` receives the server-side handover event and calls the protected FleetFlow integration endpoint.
+- `workflows/fleetflow-team-activity.json` handles explicit `START_TASK` events plus GitHub push and pull-request events.
+
+Configure `FLEETFLOW_API_URL`, `N8N_WEBHOOK_SECRET`, and optional `TEAM_NOTIFICATION_WEBHOOK_URL` in the local n8n environment. The handover workflow uses `http://app:3000` inside Compose; do not change it to `localhost`. Create any provider-specific notification credential in your own n8n instance and keep it out of exports. See [`docs/handover.md`](docs/handover.md) for payloads, validation, idempotency, role access, and error responses.
+
+GitHub cannot see uncommitted local work, so use an explicit `START_TASK` webhook action when work begins. A GitHub organization webhook needs a reachable shared n8n URL; a teammate's local n8n is not a team-wide callback target.
+
+Troubleshooting:
+
+- `app` is unhealthy: inspect `docker compose logs app postgres`, confirm `.env` exists, then retry `docker compose up --build`.
+- `P1001` or migration errors: wait for `postgres` to become healthy; never delete the volume automatically. Check `docker compose ps` and `docker compose logs postgres`.
+- n8n callbacks fail: verify both services use the same `N8N_WEBHOOK_SECRET`, use Compose service names internally, and import/activate the workflow.
+- A team notification is skipped: this is expected when `TEAM_NOTIFICATION_WEBHOOK_URL` is blank; local FleetFlow remains usable.
+
+The older hosted-database flow remains available for deployment documentation, but it is not required for a fresh local clone.
 
 To load the MIT-licensed [Kaggle Logistics Operations Database](https://www.kaggle.com/datasets/yogape/logistics-operations-database), download it with `kagglehub.dataset_download("yogape/logistics-operations-database")`, then run:
 
@@ -88,19 +107,19 @@ Never commit `.env`, database credentials, session secrets, or uploaded proof-of
 ### Services and ports
 
 - **FleetFlow web/API:** `3000` by default. Next.js serves the UI and `/api/*` routes from the same process.
-- **PostgreSQL:** `5432` when Prisma persistence is enabled. The current demo API uses in-memory data and can run without PostgreSQL.
+- **PostgreSQL:** `5432`, with persistent named volume `fleetflow-postgres`.
+- **n8n:** `5678`, with persistent named volume `fleetflow-n8n`.
 - **Authentik:** external OIDC provider; use the issuer configured by `AUTHENTIK_ISSUER`.
 - **Apache Superset:** `8088` only when the embedded analytics map is enabled.
 
 ### Start commands
 
 ```powershell
-npm install
-Copy-Item .env.example .env.local
-npm run dev
+Copy-Item .env.example .env
+docker compose up --build
 ```
 
-Optional database setup:
+Optional host-side Prisma commands (when `DATABASE_URL` points to a host-resolvable database):
 
 ```powershell
 npx prisma generate

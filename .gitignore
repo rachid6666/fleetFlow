@@ -17,3 +17,7 @@ prisma/*.db-journal
 authentik/.env
 authentik/data/
 authentik/certs/
+postgres-data/
+n8n-data/
+credentials.json
+*.pem

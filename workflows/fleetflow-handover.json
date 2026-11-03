@@ -1,0 +1,65 @@
+{
+  "name": "FleetFlow - Shipment Handover",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "fleetflow/shipment-handover", "responseMode": "responseNode", "options": {} },
+      "id": "handover-webhook",
+      "name": "Handover event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "fleetflow-shipment-handover"
+    },
+    {
+      "parameters": { "jsCode": "const body = $json.body ?? $json;\nconst required = ['event_id', 'shipment_id', 'from_driver_id', 'to_driver_id', 'timestamp'];\nconst missing = required.filter((key) => typeof body[key] !== 'string' || !body[key].trim());\nlet reason = missing.length ? `Missing required fields: ${missing.join(', ')}` : '';\nif (!reason && Number.isNaN(Date.parse(body.timestamp))) reason = 'timestamp must be a valid ISO-8601 date';\nif (!reason && body.from_driver_id === body.to_driver_id) reason = 'from_driver_id and to_driver_id must be different';\nreturn [{ json: { ...body, validation_error: reason || null } }];" },
+      "id": "handover-validate",
+      "name": "Validate event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": { "conditions": { "string": [{ "value1": "={{$json.validation_error}}", "operation": "isEmpty" }] } },
+      "id": "handover-valid",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{$env.FLEETFLOW_API_URL + '/api/integrations/handover'}}", "sendHeaders": true, "headerParameters": { "parameters": [{ "name": "content-type", "value": "application/json" }, { "name": "x-fleetflow-webhook-secret", "value": "={{$env.N8N_WEBHOOK_SECRET}}" }] }, "sendBody": true, "specifyBody": "json", "jsonBody": "={{ { event_id: $json.event_id, shipment_id: $json.shipment_id, from_driver_id: $json.from_driver_id, to_driver_id: $json.to_driver_id, timestamp: $json.timestamp } }}", "options": {} },
+      "id": "handover-process",
+      "name": "Process in FleetFlow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, -80]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{$json}}", "options": { "responseCode": 200 } },
+      "id": "handover-success",
+      "name": "Report result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [920, -80]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { error: $json.validation_error, visible: true } }}", "options": { "responseCode": 422 } },
+      "id": "handover-invalid",
+      "name": "Report invalid event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 100]
+    }
+  ],
+  "connections": {
+    "Handover event": { "main": [[{ "node": "Validate event", "type": "main", "index": 0 }]] },
+    "Validate event": { "main": [[{ "node": "Valid?", "type": "main", "index": 0 }]] },
+    "Valid?": { "main": [[{ "node": "Process in FleetFlow", "type": "main", "index": 0 }], [{ "node": "Report invalid event", "type": "main", "index": 0 }]] },
+    "Process in FleetFlow": { "main": [[{ "node": "Report result", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "fleetflow-handover-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}

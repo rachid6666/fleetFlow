@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fleetflow}
+      POSTGRES_USER: ${POSTGRES_USER:-fleetflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fleetflow-local-password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - fleetflow-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fleetflow}:${POSTGRES_PASSWORD:-fleetflow-local-password}@postgres:5432/${POSTGRES_DB:-fleetflow}?schema=public
+      DATABASE_URL_UNPOOLED: postgresql://${POSTGRES_USER:-fleetflow}:${POSTGRES_PASSWORD:-fleetflow-local-password}@postgres:5432/${POSTGRES_DB:-fleetflow}?schema=public
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET:-local-development-secret-change-me}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-local-development-secret-change-me}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      AUTHENTIK_ISSUER: ${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/fleetflow/}
+      AUTHENTIK_ID: ${AUTHENTIK_ID:-local-authentik-client}
+      AUTHENTIK_SECRET: ${AUTHENTIK_SECRET:-local-authentik-secret}
+      AUTHENTIK_ADMIN_GROUP: ${AUTHENTIK_ADMIN_GROUP:-FleetFlow Admins}
+      AUTHENTIK_DRIVER_GROUP: ${AUTHENTIK_DRIVER_GROUP:-FleetFlow Drivers}
+      FLEETFLOW_API_URL: ${FLEETFLOW_API_URL:-http://app:3000}
+      FLEETFLOW_HANDOVER_WEBHOOK_URL: ${FLEETFLOW_HANDOVER_WEBHOOK_URL:-http://n8n:5678/webhook/fleetflow/shipment-handover}
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:-local-n8n-webhook-secret}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      n8n:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/health | grep -q '\"status\":\"ok\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      N8N_HOST: 0.0.0.0
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_SECURE_COOKIE: "false"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "false"
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-local-n8n-encryption-key-change-me}
+      FLEETFLOW_API_URL: ${FLEETFLOW_API_URL:-http://app:3000}
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:-local-n8n-webhook-secret}
+      TEAM_NOTIFICATION_WEBHOOK_URL: ${TEAM_NOTIFICATION_WEBHOOK_URL:-}
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - fleetflow-n8n:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:5678/healthz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  fleetflow-postgres:
+  fleetflow-n8n:

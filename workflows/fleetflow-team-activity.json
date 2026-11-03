@@ -1,0 +1,82 @@
+{
+  "name": "FleetFlow - Team Activity",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "fleetflow/team-activity", "responseMode": "responseNode", "options": {} },
+      "id": "team-webhook",
+      "name": "Team activity event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "fleetflow-team-activity"
+    },
+    {
+      "parameters": { "jsCode": "const body = $json.body ?? $json;\nconst eventType = body.event_type || body.action || ($json.headers?.['x-github-event'] ? `github_${$json.headers['x-github-event']}` : '');\nconst allowed = ['START_TASK', 'github_push', 'github_pull_request'];\nconst reason = allowed.includes(eventType) ? null : `Unsupported event_type: ${eventType || 'missing'}`;\nreturn [{ json: { event_type: eventType, actor: body.actor || body.sender?.login || body.pusher?.name || 'unknown', repository: body.repository?.full_name || body.repository || null, ref: body.ref || null, action: body.action || null, title: body.pull_request?.title || body.title || null, url: body.pull_request?.html_url || body.url || null, validation_error: reason } }];" },
+      "id": "team-normalize",
+      "name": "Validate and normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": { "conditions": { "string": [{ "value1": "={{$json.validation_error}}", "operation": "isEmpty" }] } },
+      "id": "team-valid",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": { "conditions": { "string": [{ "value1": "={{$env.TEAM_NOTIFICATION_WEBHOOK_URL}}", "operation": "isNotEmpty" }] } },
+      "id": "team-configured",
+      "name": "Notification configured?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, -80]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{$env.TEAM_NOTIFICATION_WEBHOOK_URL}}", "sendBody": true, "specifyBody": "json", "jsonBody": "={{$json}}", "options": {} },
+      "id": "team-notify",
+      "name": "Notify team",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, -160]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ok: true, notified: true, event_type: $json.event_type } }}", "options": { "responseCode": 200 } },
+      "id": "team-notified",
+      "name": "Report notified",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1100, -160]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ok: true, notified: false, reason: 'TEAM_NOTIFICATION_WEBHOOK_URL is not configured' } }}", "options": { "responseCode": 200 } },
+      "id": "team-skipped",
+      "name": "Report skipped",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 20]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { error: $json.validation_error, visible: true } }}", "options": { "responseCode": 422 } },
+      "id": "team-invalid",
+      "name": "Report invalid event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 160]
+    }
+  ],
+  "connections": {
+    "Team activity event": { "main": [[{ "node": "Validate and normalize", "type": "main", "index": 0 }]] },
+    "Validate and normalize": { "main": [[{ "node": "Valid?", "type": "main", "index": 0 }]] },
+    "Valid?": { "main": [[{ "node": "Notification configured?", "type": "main", "index": 0 }], [{ "node": "Report invalid event", "type": "main", "index": 0 }]] },
+    "Notification configured?": { "main": [[{ "node": "Notify team", "type": "main", "index": 0 }], [{ "node": "Report skipped", "type": "main", "index": 0 }]] },
+    "Notify team": { "main": [[{ "node": "Report notified", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "fleetflow-team-activity-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}
