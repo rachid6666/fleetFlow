@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
+import { LiveTrackingMap } from "@/components/live-tracking-map";
 import { getLogisticsDashboard, getShipmentAlerts } from "@/lib/data";
+import { getLiveTrackingData } from "@/lib/tracking";
 import { statusLabels } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [dashboard, alerts] = await Promise.all([
+  const [dashboard, alerts, liveTracking] = await Promise.all([
     getLogisticsDashboard(),
     getShipmentAlerts(),
+    getLiveTrackingData(),
   ]);
   const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const number = new Intl.NumberFormat("en-US");
@@ -78,6 +81,7 @@ export default async function AdminPage() {
             <p className="alerts-clear">All shipments are up to date. No active exceptions.</p>
           )}
         </section>
+        <LiveTrackingMap initialData={liveTracking} />
         <section className="metrics">
           <div className="metric-card">
             <div className="metric-label">Total loads</div>

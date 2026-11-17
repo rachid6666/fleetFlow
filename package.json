@@ -18,7 +18,8 @@
     "db:migrate": "prisma migrate dev",
     "db:import:kaggle": "tsx prisma/import-kaggle.ts",
     "db:verify:kaggle": "tsx prisma/verify-kaggle.ts",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:tracking": "tsx prisma/seed-tracking.ts"
   },
   "dependencies": {
     "@neon/config": "^1.10.0",
@@ -41,5 +42,8 @@
     "prisma": "^6.17.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts && tsx prisma/seed-tracking.ts && tsx prisma/verify-tracking.ts"
   }
 }

@@ -7,6 +7,8 @@ The canonical schema is [`prisma/schema.prisma`](../../../prisma/schema.prisma).
 - `User`: identity, role, driver assignments, and customer ownership.
 - `Shipment`: route, tracking code, current status, optional driver, required customer, and notes.
 - `StatusLog`: append-only timeline event linked to a shipment.
+- `HandoverEvent`: idempotent driver-handover audit record.
+- `ShipmentLocationPing`: append-only GPS telemetry used by live tracking and ETA calculations.
 
 ## Status transition guidance
 

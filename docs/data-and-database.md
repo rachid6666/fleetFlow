@@ -19,6 +19,8 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | Page or endpoint | Data source | Access and behavior |
 |---|---|---|
 | `/admin` | `loads`, `trips`, `drivers`, `trucks`, `delivery_events`, `safety_incidents` | Admin-only; live load revenue, distance, active fleet, delivery performance, and recent loads |
+| `/admin` live GPS panel | `Shipment`, `ShipmentLocationPing`, related `User` | Admin-only; latest position, route trail, ETA, progress, and stale-feed state |
+| `/admin/copilot` | Server-built aggregate snapshot from FleetFlow and Kaggle tables | Admin-only; grounded AI answers through local Ollama with a rules fallback |
 | `/admin/shipments` | `Shipment`, related `User` records | Admin-only; live shipment, driver, and customer data |
 | `/driver` | `Shipment`, related driver `User` | Driver-only; shipments assigned to the signed-in account's email |
 | `/track?code=...` | `Shipment`, `StatusLog` | Public tracking lookup; returns only tracking-safe fields |
@@ -26,6 +28,9 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | `GET /api/shipments` | `Shipment`, related `User` records | Requires an admin or driver session; drivers see only their own assignments |
 | `GET /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Public tracking lookup; does not return customer, driver, or internal notes |
 | `PATCH /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires an admin or assigned driver; status update and audit event are one transaction |
+| `GET /api/tracking/live` | `Shipment`, `ShipmentLocationPing` | Admin-only live fleet map data |
+| `POST /api/tracking/pings` | `Shipment`, `ShipmentLocationPing` | Admin or assigned driver; appends GPS telemetry without changing shipment status |
+| `POST /api/copilot` | Aggregated operational snapshot | Admin-only AI operations question |
 
 FleetFlow's separate operational records are stored in the `User`, `Branch`, `Shipment`, and `StatusLog` tables. `/admin/shipments`, `/driver`, and customer tracking continue to read those tables. The seed script provisions reference branches; it does not create shipment demo records. Shipment lists remain empty until FleetFlow shipments are created.
 

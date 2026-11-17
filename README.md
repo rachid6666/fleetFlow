@@ -1,4 +1,4 @@
-﻿# FleetFlow
+# FleetFlow
 
 FleetFlow is a multi-role logistics operations platform for shipment tracking, driver assignment, delivery updates, proof-of-delivery notes, and auditable exception handling.
 
@@ -29,6 +29,7 @@ CONTRIBUTING.md               Development and delivery conventions
 ## Current data model
 
 The application reads shipments from PostgreSQL through Prisma. Shipment status changes are authenticated and persist an audit event in the same transaction. Public tracking responses omit customer, driver, and internal-note fields.
+Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. Seven synthetic GPS routes are available through `npm run db:seed:tracking`.
 
 The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. This preserves its source entities and relationships without creating synthetic Auth.js accounts or converting historical loads into mutable FleetFlow shipments.
 
@@ -40,11 +41,13 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 - [`docs/ai-prompts.md`](docs/ai-prompts.md) — prompts for building the major slices with coding agents
 - [`docs/blueprint.md`](docs/blueprint.md) — source blueprint captured from the original project plan
 - [`docs/data-and-database.md`](docs/data-and-database.md) — what reads from Neon, Kaggle table relationships, and database setup/import
+- [`docs/live-tracking-and-copilot.md`](docs/live-tracking-and-copilot.md) — synthetic GPS routes, telemetry API, and admin AI copilot
 - [`skills/fleetflow-build/SKILL.md`](skills/fleetflow-build/SKILL.md) — reusable Codex skill
 
 ## Product screens
 
-- `/admin` — operational metrics, recent shipments, and alerts for exceptions or shipments without an update for 24 hours
+- `/admin` — operational metrics, live GPS map, recent shipments, and exception/stale-feed alerts
+- `/admin/copilot` — admin-only AI operations copilot grounded in live and historical logistics data
 - `/admin/shipments` — shipment desk with routes, statuses, drivers, customers, and ETAs
 - `/driver` — mobile-oriented assigned shipment workflow with status actions
 - `/track` — customer tracking code lookup and event timeline
