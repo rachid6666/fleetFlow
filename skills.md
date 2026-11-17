@@ -30,3 +30,9 @@ The skill is self-contained and includes [`references/schema.md`](skills/fleetfl
 - Proof metadata is stored with the shipment; local files are kept under the ignored `.fleetflow/proof-of-delivery/` directory.
 - Proof uploads validate both MIME type and file signature, and uploads/downloads require authentication and assignment ownership.
 - Uploads use `POST /api/shipments/:trackingCode/proof`; proof files are viewed through `GET /api/shipments/:trackingCode/proof/:proofId`.
+
+## Driver delivery and customer tracking
+
+- Accepted drivers progress assigned shipments through `IN_TRANSIT` and `DELIVERED` from `/driver`; pending or rejected assignments cannot update shipment status.
+- Delivery status changes and driver notes are recorded in the shipment audit log.
+- Customers track delivered shipments with the shipment tracking code at `/track?code=:trackingCode`; the tracking page displays the assigned driver and verified delivery events.
