@@ -37,6 +37,11 @@ async function main() {
     update: { name: "Driver Two", role: "DRIVER" },
     create: { id: "local-driver-two", email: "driver.two@fleetflow.local", password: "local-seed-only", name: "Driver Two", role: "DRIVER" },
   });
+  await prisma.user.upsert({
+    where: { email: "collins.ortese.driver@fleetflow.local" },
+    update: { name: "Collins Ortese", role: "DRIVER" },
+    create: { id: "local-driver-collins-2", email: "collins.ortese.driver@fleetflow.local", password: "authentik-managed", name: "Collins Ortese", role: "DRIVER" },
+  });
   const customer = await prisma.user.upsert({
     where: { email: "customer@fleetflow.local" },
     update: { name: "Local Customer", role: "CUSTOMER" },

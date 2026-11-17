@@ -14,6 +14,17 @@ enum Role {
   CUSTOMER
 }
 
+enum DriverAvailability {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum AssignmentStatus {
+  ACCEPTED
+  PENDING
+  REJECTED
+}
+
 enum ShipmentStatus {
   PENDING
   DISPATCHED
@@ -33,6 +44,7 @@ model User {
   password        String
   name            String
   role            Role       @default(CUSTOMER)
+  availability    DriverAvailability @default(AVAILABLE)
   shipments       Shipment[] @relation("DriverShipments")
   clientShipments Shipment[] @relation("CustomerShipments")
   createdAt       DateTime   @default(now())
@@ -75,10 +87,12 @@ model Shipment {
   notes               String?
   driverId            String?
   driver              User?          @relation("DriverShipments", fields: [driverId], references: [id])
+  assignmentStatus    AssignmentStatus @default(ACCEPTED)
   customerId          String
   customer            User           @relation("CustomerShipments", fields: [customerId], references: [id])
   updates             StatusLog[]
   locationPings       ShipmentLocationPing[]
+  deliveryProofs       DeliveryProof[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
@@ -87,6 +101,20 @@ model Shipment {
   @@index([customerId])
   @@index([originBranchId])
   @@index([destinationBranchId])
+}
+
+model DeliveryProof {
+  id           String   @id @default(cuid())
+  shipmentId   String
+  shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  storageKey   String   @unique
+  originalName String
+  contentType  String
+  sizeBytes    Int
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+
+  @@index([shipmentId, createdAt])
 }
 
 model StatusLog {

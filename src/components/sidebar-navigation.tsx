@@ -35,6 +35,7 @@ export function SidebarNavigation() {
         <Link href="/admin/analytics" onClick={closeMenu}>Analytics</Link>
         <Link href="/admin/copilot" onClick={closeMenu}>AI copilot</Link>
         <Link href="/admin/shipments" onClick={closeMenu}>Shipments</Link>
+        <Link href="/admin/drivers" onClick={closeMenu}>Drivers group</Link>
         <Link href="/driver" onClick={closeMenu}>Driver mobile view</Link>
         <Link href="/track" onClick={closeMenu}>Customer tracking</Link>
       </nav>

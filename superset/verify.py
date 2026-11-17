@@ -21,8 +21,12 @@ with app.app_context():
         guest_contexts = {}
         for chart in charts:
             form = json.loads(chart.params)
-            metrics = form.get('metrics') or [form.get('metric')]
-            assert all(metrics), (chart.slice_name, 'missing metric configuration')
+            metrics = form.get('metrics')
+            if metrics is None:
+                metric = form.get('metric')
+                metrics = [metric] if metric else []
+            if chart.viz_type != 'deck_scatter':
+                assert all(metrics), (chart.slice_name, 'missing metric configuration')
             query = {
                 'columns': form.get('groupby', []),
                 'metrics': metrics,

@@ -9,6 +9,8 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - fleetflow-postgres:/var/lib/postgresql/data
+    networks:
+      - fleetflow
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -19,6 +21,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - path: .env.local
+        required: false
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-fleetflow}:${POSTGRES_PASSWORD:-fleetflow-local-password}@postgres:5432/${POSTGRES_DB:-fleetflow}?schema=public
       DATABASE_URL_UNPOOLED: postgresql://${POSTGRES_USER:-fleetflow}:${POSTGRES_PASSWORD:-fleetflow-local-password}@postgres:5432/${POSTGRES_DB:-fleetflow}?schema=public
@@ -29,6 +34,9 @@ services:
       AUTHENTIK_ISSUER: ${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/fleetflow/}
       AUTHENTIK_ID: ${AUTHENTIK_ID:-local-authentik-client}
       AUTHENTIK_SECRET: ${AUTHENTIK_SECRET:-local-authentik-secret}
+      AUTHENTIK_AUTHORIZATION_URL: ${AUTHENTIK_AUTHORIZATION_URL:-}
+      SUPERSET_SERVER_URL: http://superset:8088
+      SUPERSET_PUBLIC_URL: http://localhost:8088
       AUTHENTIK_ADMIN_GROUP: ${AUTHENTIK_ADMIN_GROUP:-FleetFlow Admins}
       AUTHENTIK_DRIVER_GROUP: ${AUTHENTIK_DRIVER_GROUP:-FleetFlow Drivers}
       FLEETFLOW_API_URL: ${FLEETFLOW_API_URL:-http://app:3000}
@@ -46,6 +54,8 @@ services:
         condition: service_healthy
       n8n:
         condition: service_healthy
+    networks:
+      - fleetflow
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/health | grep -q '\"status\":\"ok\"'"]
       interval: 10s
@@ -77,3 +87,6 @@ services:
 volumes:
   fleetflow-postgres:
   fleetflow-n8n:
+networks:
+  fleetflow:
+    name: fleetflow

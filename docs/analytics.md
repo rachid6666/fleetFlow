@@ -4,15 +4,18 @@ Open `/admin/analytics` while signed in as a FleetFlow admin. The dashboard has 
 
 ## Run locally
 
-Prerequisites: Docker Desktop and the existing app database in `.env`, migrated and populated.
+Prerequisites: Docker Desktop and the FleetFlow PostgreSQL database, migrated and populated. For the Compose app, start PostgreSQL first so Superset can reach it on the shared `fleetflow` network.
 
 ```powershell
+docker compose up -d postgres
 npm run superset:setup
 npm run superset:up
-npm run dev
+docker compose up -d --build app
 ```
 
-Restart an already running Next.js process after setup. Local connection settings are written to `.env.local`, preserving unrelated entries. Superset listens on http://localhost:8088. Direct dashboard: http://localhost:8088/superset/dashboard/fleetflow-operations/.
+Setup uses the local Compose PostgreSQL settings from `.env`. Set `SUPERSET_DATABASE_URL` before setup to use a dedicated read-only account instead. The generated embed credentials are written to ignored `superset/.env` and `.env.local`; Docker loads `.env.local` into the app container. The app calls Superset at `http://superset:8088`, and the browser embeds it from http://localhost:8088. Direct dashboard: http://localhost:8088/superset/dashboard/fleetflow-operations/.
+
+For a host-run Next.js process, start it with `npm run dev` after setup; it uses `http://localhost:8088` for both server requests and browser embeds.
 
 Superset username is `fleetflow-admin`; its generated password is `SUPERSET_ADMIN_PASSWORD` in the ignored `superset/.env`. The separate embed service account only mints guest tokens. FleetFlow requires an ADMIN session to issue one. Credentials stay server-side.
 

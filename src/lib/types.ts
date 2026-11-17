@@ -5,12 +5,25 @@ export type ShipmentStatus =
   | "DELIVERED"
   | "EXCEPTION";
 
+export type AssignmentStatus = "ACCEPTED" | "PENDING" | "REJECTED";
+
+export type DeliveryProof = {
+  id: string;
+  originalName: string;
+  contentType: string;
+  sizeBytes: number;
+  uploadedAt: string;
+};
+
 export type Shipment = {
   id: string;
   trackingCode: string;
   origin: string;
   destination: string;
   status: ShipmentStatus;
+  assignmentStatus: AssignmentStatus;
+  deliveryProofs: DeliveryProof[];
+  driverId: string | null;
   driverName: string | null;
   customerName: string;
   updatedAt: string;

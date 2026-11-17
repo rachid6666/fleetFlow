@@ -10,6 +10,8 @@ services:
     volumes:
       - .:/app/fleetflow:ro
       - metadata:/app/superset_home
+    networks:
+      - fleetflow
     command: ["/bin/sh", "-c", "superset db upgrade && superset init && python /app/fleetflow/bootstrap.py && gunicorn --bind 0.0.0.0:8088 --workers 2 --timeout 120 'superset.app:create_app()'"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
@@ -19,3 +21,8 @@ services:
     restart: unless-stopped
 volumes:
   metadata:
+
+networks:
+  fleetflow:
+    name: fleetflow
+    external: true

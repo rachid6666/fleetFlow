@@ -39,6 +39,17 @@ Validation rules:
 
 Data access: Admins can access all shipment and handover data through the existing admin routes. Drivers can access their own assignments and can act only on an assigned shipment. Customers remain excluded from mutation endpoints. Public `GET /api/shipments/:trackingCode` exposes tracking-safe fields and `StatusLog` timeline entries, not driver IDs or internal handover fields.
 
+## Driver operations before handover
+
+Driver assignment and delivery-proof actions are separate from the n8n handover event:
+
+1. An admin assigns or reassigns a driver from the shipment desk. A new assignment is stored as `assignmentStatus=PENDING`.
+2. The assigned driver reviews the route in `/driver` and calls `PATCH /api/shipments/:trackingCode/assignment-response` with either `{"assignmentStatus":"ACCEPTED"}` or `{"assignmentStatus":"REJECTED"}`.
+3. Accepted assignments allow status updates, delivery notes, and proof uploads. Rejected assignments are unassigned and recorded in `StatusLog`.
+4. An accepted driver can upload a PDF, JPG, or PNG proof (maximum 10 MB) with `POST /api/shipments/:trackingCode/proof`. The response returns proof metadata; authenticated users can view the file with `GET /api/shipments/:trackingCode/proof/:proofId`.
+
+The proof file is stored in the ignored local `.fleetflow/proof-of-delivery/` directory, while PostgreSQL stores its metadata and shipment relationship. Production deployments should replace this local storage adapter with object storage while preserving the metadata and authorization contract. Uploads validate both the declared MIME type and the file signature, and drivers may access only proofs for their accepted assignments.
+
 ## Team activity
 
 Flow: explicit FleetFlow start-task action or GitHub push/pull-request webhook → n8n `fleetflow/team-activity` webhook → optional `TEAM_NOTIFICATION_WEBHOOK_URL` → team notification service.

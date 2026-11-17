@@ -3,9 +3,20 @@ import { parseEnv } from "node:util";
 import { randomBytes } from "node:crypto";
 
 const env = { ...parseEnv(fs.readFileSync('.env', 'utf8')), ...process.env };
+function sourceDatabaseUrl() {
+  if (env.SUPERSET_DATABASE_URL) return env.SUPERSET_DATABASE_URL;
+  const url = new URL('postgresql://postgres');
+  url.username = env.POSTGRES_USER || 'fleetflow';
+  url.password = env.POSTGRES_PASSWORD || 'fleetflow-local-password';
+  url.hostname = 'postgres';
+  url.port = '5432';
+  url.pathname = `/${env.POSTGRES_DB || 'fleetflow'}`;
+  return url.toString();
+}
+const sourceUrl = sourceDatabaseUrl();
 const path = 'superset/.env';
 if (!fs.existsSync(path)) {
-  const url = new URL(env.SUPERSET_DATABASE_URL || env.DATABASE_URL_UNPOOLED || env.DATABASE_URL);
+  const url = new URL(sourceUrl);
   url.searchParams.delete('schema');
   const settings = {
     SUPERSET_SECRET_KEY: randomBytes(48).toString('hex'),
@@ -18,7 +29,7 @@ if (!fs.existsSync(path)) {
 }
 const settings = parseEnv(fs.readFileSync(path, 'utf8'));
 // Refresh the source connection without rotating metadata encryption or login secrets.
-const databaseUrl = new URL(env.SUPERSET_DATABASE_URL || env.DATABASE_URL_UNPOOLED || env.DATABASE_URL);
+const databaseUrl = new URL(sourceUrl);
 databaseUrl.searchParams.delete('schema');
 settings.FLEETFLOW_DATABASE_URL = databaseUrl.toString().replace(/^postgres(ql)?:/, 'postgresql+psycopg2:');
 fs.writeFileSync(path, Object.entries(settings).map(([k,v]) => `${k}='${v.replaceAll("'", "\\'")}'`).join('\n')+'\n');

@@ -8,8 +8,12 @@ const transitions: Record<ShipmentStatus, ShipmentStatus[]> = {
   EXCEPTION: ["DISPATCHED", "IN_TRANSIT"],
 };
 
+export function getAvailableTransitions(from: ShipmentStatus) {
+  return transitions[from];
+}
+
 export function canTransition(from: ShipmentStatus, to: ShipmentStatus) {
-  return transitions[from].includes(to);
+  return getAvailableTransitions(from).includes(to);
 }
 
 export function assertTransition(from: ShipmentStatus, to: ShipmentStatus) {

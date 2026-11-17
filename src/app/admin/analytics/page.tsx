@@ -21,7 +21,7 @@ export default async function AnalyticsPage() {
         </div>
         <SupersetAnalytics
           dashboardId={process.env.SUPERSET_ANALYTICS_DASHBOARD_ID}
-          domain={process.env.NEXT_PUBLIC_SUPERSET_URL || process.env.SUPERSET_URL}
+          domain={process.env.SUPERSET_PUBLIC_URL || process.env.NEXT_PUBLIC_SUPERSET_URL || process.env.SUPERSET_URL}
         />
       </main>
     </div>

@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
 
-  const baseUrl = process.env.SUPERSET_URL;
+  const baseUrl = process.env.SUPERSET_SERVER_URL || process.env.SUPERSET_URL;
   const dashboardId = new URL(request.url).searchParams.get("dashboard") === "analytics"
     ? process.env.SUPERSET_ANALYTICS_DASHBOARD_ID
     : process.env.SUPERSET_DASHBOARD_ID;
