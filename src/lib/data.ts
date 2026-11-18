@@ -414,6 +414,24 @@ export async function listShipmentsForCustomer(email: string): Promise<CustomerS
   return records.map(toCustomerShipment);
 }
 
+export async function getShipmentForCustomer(
+  email: string,
+  trackingCode: string,
+): Promise<CustomerShipment | undefined> {
+  const code = trackingCode.trim();
+  if (!code) return undefined;
+
+  const record = await prisma.shipment.findFirst({
+    where: {
+      trackingCode: { equals: code, mode: "insensitive" },
+      customer: { email: { equals: email, mode: "insensitive" } },
+    },
+    select: customerShipmentSelect,
+  });
+
+  return record ? toCustomerShipment(record) : undefined;
+}
+
 export async function getRecentActivity(take = 3) {
   return prisma.statusLog.findMany({
     take,

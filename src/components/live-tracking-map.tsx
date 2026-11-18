@@ -23,9 +23,16 @@ function routePoints(shipment: LiveShipment) {
   }).join(" ");
 }
 
-export function LiveTrackingMap({ initialData }: { initialData: LiveTrackingData }) {
+export function LiveTrackingMap({
+  initialData,
+  initialAvailable = true,
+}: {
+  initialData: LiveTrackingData;
+  initialAvailable?: boolean;
+}) {
   const [data, setData] = useState(initialData);
   const [selectedCode, setSelectedCode] = useState(initialData.shipments[0]?.trackingCode ?? "");
+  const [dataAvailable, setDataAvailable] = useState(initialAvailable);
   const [pollError, setPollError] = useState(false);
 
   useEffect(() => {
@@ -37,11 +44,14 @@ export function LiveTrackingMap({ initialData }: { initialData: LiveTrackingData
         const next = (await response.json()) as LiveTrackingData;
         if (active) {
           setData(next);
+          setDataAvailable(true);
           setPollError(false);
           setSelectedCode((current) => current || next.shipments[0]?.trackingCode || "");
         }
       } catch {
-        if (active) setPollError(true);
+        if (active) {
+          setPollError(true);
+        }
       }
     };
     const timer = window.setInterval(poll, 10000);
@@ -55,6 +65,7 @@ export function LiveTrackingMap({ initialData }: { initialData: LiveTrackingData
     () => data.shipments.find((shipment) => shipment.trackingCode === selectedCode) ?? data.shipments[0],
     [data.shipments, selectedCode],
   );
+  const telemetryOnline = dataAvailable && !pollError;
 
   return (
     <section className="panel live-tracking-panel">
@@ -64,16 +75,17 @@ export function LiveTrackingMap({ initialData }: { initialData: LiveTrackingData
           <h2>Shipment GPS map</h2>
           <p className="subtitle">Synthetic routes demonstrate the production tracking flow using real shipment records and stored GPS pings.</p>
         </div>
-        <span className={`telemetry-status${pollError ? " is-error" : ""}`}>
-          <span className="online-dot" /> {pollError ? "Reconnecting" : "Telemetry online"}
+        <span className={`telemetry-status${telemetryOnline ? "" : " is-error"}`}>
+          <span className="online-dot" />{" "}
+          {telemetryOnline ? "Telemetry online" : dataAvailable ? "Reconnecting" : "Telemetry unavailable"}
         </span>
       </div>
 
       <div className="tracking-kpis">
-        <div><strong>{data.summary.inTransit}</strong><span>In transit</span></div>
-        <div><strong>{data.summary.exceptions}</strong><span>Exceptions</span></div>
-        <div><strong>{data.summary.stale}</strong><span>Stale feeds</span></div>
-        <div><strong>{data.summary.delivered}</strong><span>Delivered</span></div>
+        <div><strong>{dataAvailable ? data.summary.inTransit : "—"}</strong><span>In transit</span></div>
+        <div><strong>{dataAvailable ? data.summary.exceptions : "—"}</strong><span>Exceptions</span></div>
+        <div><strong>{dataAvailable ? data.summary.stale : "—"}</strong><span>Stale feeds</span></div>
+        <div><strong>{dataAvailable ? data.summary.delivered : "—"}</strong><span>Delivered</span></div>
       </div>
 
       {data.shipments.length ? (
@@ -135,7 +147,11 @@ export function LiveTrackingMap({ initialData }: { initialData: LiveTrackingData
           </aside>
         </div>
       ) : (
-        <p className="subtitle">No GPS pings are stored yet. Run <code>npm run db:seed:tracking</code> to add synthetic live routes.</p>
+        <p className="subtitle">
+          {dataAvailable
+            ? <>No GPS pings are stored yet. Run <code>npm run db:seed:tracking</code> to add synthetic live routes.</>
+            : "Live GPS telemetry could not be loaded. FleetFlow will retry automatically."}
+        </p>
       )}
 
       {selected ? (

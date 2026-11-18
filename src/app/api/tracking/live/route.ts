@@ -9,5 +9,13 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
 
-  return NextResponse.json(await getLiveTrackingData(), { headers: { "Cache-Control": "no-store" } });
+  try {
+    return NextResponse.json(await getLiveTrackingData(), { headers: { "Cache-Control": "no-store" } });
+  } catch {
+    console.warn("Live tracking data is temporarily unavailable.");
+    return NextResponse.json(
+      { error: "Live tracking data is temporarily unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 }

@@ -24,6 +24,8 @@ Drivers can view only shipments assigned to the database user whose email matche
 
 Customers can view only shipments whose `Shipment.customer` email matches `session.user.email`. Their API response contains tracking code, route, status, ETA, and a customer-safe event timeline. It omits internal notes, driver identities, delivery-proof metadata, proof files, and mutation endpoints.
 
+The customer page can focus on one assigned tracking code with `/customer?tracking=FF-...`. The page applies the same email ownership filter in the database query. A code that does not exist or belongs to another customer receives the same generic not-found state, so the page does not reveal another customer's shipment.
+
 ## Backend enforcement
 
 Authorization is enforced in the server query, not by a client-side filter:
