@@ -9,10 +9,12 @@ import { Sidebar } from "@/components/sidebar";
 import { StatusActions } from "@/components/status-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { getDriverByEmail, listShipmentsForDriver } from "@/lib/data";
+import { ShipmentFilterForm, ShipmentPagination } from "@/components/shipment-filters";
+import { filterShipments, paginateShipments, parseShipmentFilters, type ShipmentSearchParams } from "@/lib/shipment-search";
 
 export const dynamic = "force-dynamic";
 
-export default async function DriverPage() {
+export default async function DriverPage({ searchParams }: { searchParams: Promise<ShipmentSearchParams> }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (session.user.role !== "DRIVER") redirect(workspacePathForRole(session.user.role));
@@ -24,6 +26,9 @@ export default async function DriverPage() {
     getDriverByEmail(email),
   ]);
   const name = driver?.name ?? session.user.name ?? "Driver";
+  const { filters, error } = parseShipmentFilters(await searchParams, true);
+  const filtered = error ? [] : filterShipments(assigned, filters);
+  const { page, pages, offset, visible } = paginateShipments(filtered, filters.page);
   const firstName = name.split(/\s+/)[0] || "Driver";
   const activeTrips = assigned.filter((shipment) => shipment.status !== "DELIVERED").length;
   const completedTrips = assigned.length - activeTrips;
@@ -73,15 +78,18 @@ export default async function DriverPage() {
                 <div className="eyebrow">Today&apos;s work</div>
                 <h2 id="driver-trips-title">Your trips</h2>
               </div>
-              <span>{assigned.length === 1 ? "1 assignment" : `${assigned.length} assignments`}</span>
+              <span role="status">{filtered.length === 1 ? "1 matching assignment" : `${filtered.length} matching assignments`}</span>
             </div>
 
+            <ShipmentFilterForm filters={filters} driver />
+            {error ? <p role="alert">{error}</p> : null}
+
             <div className="driver-trip-list">
-              {assigned.map((shipment, index) => (
+              {visible.map((shipment, index) => (
                 <article className="driver-trip-card" key={shipment.id}>
                   <div className="driver-trip-heading">
                     <div>
-                      <span className="driver-trip-index">Trip {String(index + 1).padStart(2, "0")}</span>
+                      <span className="driver-trip-index">Trip {String(offset + index + 1).padStart(2, "0")}</span>
                       <h3>{shipment.trackingCode}</h3>
                     </div>
                     <StatusBadge status={shipment.status} />
@@ -124,14 +132,15 @@ export default async function DriverPage() {
                 </article>
               ))}
 
-              {assigned.length === 0 ? (
+              {visible.length === 0 ? (
                 <div className="driver-empty-state">
                   <span aria-hidden="true">✓</span>
-                  <h3>No trips assigned</h3>
-                  <p>New assignments will appear here as soon as dispatch assigns them to your account.</p>
+                  <h3>{assigned.length ? "No trips match your filters" : "No trips assigned"}</h3>
+                  <p>{assigned.length ? "Try a different search or clear the filters." : "New assignments will appear here as soon as dispatch assigns them to your account."}</p>
                 </div>
               ) : null}
             </div>
+            <ShipmentPagination filters={filters} page={page} pages={pages} driver />
           </section>
         </div>
       </main>

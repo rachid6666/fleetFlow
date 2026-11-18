@@ -372,6 +372,7 @@ function customerUpdateDescription(status: ShipmentStatus) {
 }
 
 const customerShipmentSelect = {
+  createdAt: true,
   id: true,
   trackingCode: true,
   origin: true,
@@ -388,6 +389,7 @@ type CustomerShipmentRecord = Prisma.ShipmentGetPayload<{ select: typeof custome
 
 function toCustomerShipment(record: CustomerShipmentRecord): CustomerShipment {
   return {
+    createdAt: record.createdAt.toISOString(),
     id: record.id,
     trackingCode: record.trackingCode,
     origin: record.origin,

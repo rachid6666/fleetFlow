@@ -1,0 +1,159 @@
+EVIDENCE
+Graph: graphify-out/graph.json (274 nodes) | Traversal: BFS depth=1 | Start (given): ['transitionShipmentStatus()'] | 6 nodes found
+
+NODE transitionShipmentStatus() [src=lib/data.ts loc=L583 community=0]
+NODE data.ts [src=lib/data.ts loc=L1 community=0]
+NODE [trackingCode]/route.ts [src=app/api/shipments/[trackingCode]/route.ts loc=L1 community=0]
+NODE toShipment() [src=lib/data.ts loc=L37 community=0]
+NODE assertTransition() [src=lib/shipment-rules.ts loc=L19 community=8]
+NODE PATCH() [src=app/api/shipments/[trackingCode]/route.ts loc=L30 community=0]
+EDGE PATCH() --calls [EXTRACTED context=call]--> transitionShipmentStatus() at=app/api/shipments/[trackingCode]/route.ts:L57
+EDGE transitionShipmentStatus() --calls [EXTRACTED context=call]--> assertTransition() at=lib/data.ts:L610
+EDGE transitionShipmentStatus() --calls [EXTRACTED context=call]--> toShipment() at=lib/data.ts:L630
+EDGE [trackingCode]/route.ts --imports [EXTRACTED context=import]--> transitionShipmentStatus() at=app/api/shipments/[trackingCode]/route.ts:L4
+EDGE data.ts --contains [EXTRACTED]--> transitionShipmentStatus() at=lib/data.ts:L583
+EDGE [trackingCode]/route.ts --imports_from [EXTRACTED context=import]--> data.ts at=app/api/shipments/[trackingCode]/route.ts:L4
+EDGE [trackingCode]/route.ts --contains [EXTRACTED]--> PATCH() at=app/api/shipments/[trackingCode]/route.ts:L30
+EDGE data.ts --imports [EXTRACTED context=import]--> assertTransition() at=lib/data.ts:L3
+EDGE data.ts --contains [EXTRACTED]--> toShipment() at=lib/data.ts:L37
+
+FILE src/lib/data.ts
+583: export async function transitionShipmentStatus(
+584:   trackingCode: string,
+585:   status: ShipmentStatus,
+586:   notes: string | undefined,
+587:   actor: ShipmentActor,
+588: ): Promise<
+589:   | { kind: "not-found" }
+590:   | { kind: "forbidden" }
+591:   | { kind: "updated"; shipment: Shipment }
+592: > {
+593:   return prisma.$transaction(async (transaction) => {
+594:     const current = await transaction.shipment.findFirst({
+595:       where: { trackingCode: { equals: trackingCode.trim(), mode: "insensitive" } },
+596:       include: { driver: { select: { email: true } } },
+597:     });
+598: 
+599:     if (!current) return { kind: "not-found" };
+600:     if (
+601:       actor.role === "DRIVER" &&
+602:       current.driver?.email.toLowerCase() !== actor.email.toLowerCase()
+603:     ) {
+604:       return { kind: "forbidden" };
+605:     }
+606:     if (actor.role === "DRIVER" && current.assignmentStatus !== "ACCEPTED") {
+607:       return { kind: "forbidden" };
+608:     }
+609: 
+610:     assertTransition(current.status, status);
+611: 
+612:     const updated = await transaction.shipment.update({
+613:       where: { id: current.id },
+614:       data: {
+615:         status,
+616:         ...(notes === undefined ? {} : { notes }),
+617:       },
+618:       include: shipmentInclude,
+619:     });
+620: 
+621:     await transaction.statusLog.create({
+622:       data: {
+623:         shipmentId: updated.id,
+624:         status,
+625:         actorEmail: actor.email,
+626:         description: `Status changed to ${status}`,
+627:       },
+628:     });
+629: 
+630:     return { kind: "updated", shipment: toShipment(updated) };
+631:   });
+632: }
+
+FILE src/lib/shipment-rules.ts
+1: import type { ShipmentStatus } from "./types";
+2: 
+3: const transitions: Record<ShipmentStatus, ShipmentStatus[]> = {
+4:   PENDING: ["DISPATCHED", "EXCEPTION"],
+5:   DISPATCHED: ["IN_TRANSIT", "EXCEPTION"],
+6:   IN_TRANSIT: ["DELIVERED", "EXCEPTION"],
+7:   DELIVERED: [],
+8:   EXCEPTION: ["DISPATCHED", "IN_TRANSIT"],
+9: };
+10: 
+11: export function getAvailableTransitions(from: ShipmentStatus) {
+12:   return transitions[from];
+13: }
+14: 
+15: export function canTransition(from: ShipmentStatus, to: ShipmentStatus) {
+16:   return getAvailableTransitions(from).includes(to);
+17: }
+18: 
+19: export function assertTransition(from: ShipmentStatus, to: ShipmentStatus) {
+20:   if (!canTransition(from, to)) {
+21:     throw new InvalidShipmentTransitionError(from, to);
+22:   }
+23: }
+24: 
+25: export class InvalidShipmentTransitionError extends Error {
+26:   constructor(from: ShipmentStatus, to: ShipmentStatus) {
+27:     super(`Invalid shipment transition: ${from} → ${to}`);
+28:     this.name = "InvalidShipmentTransitionError";
+29:   }
+30: }
+
+FILE src/app/api/shipments/[trackingCode]/route.ts
+30: export async function PATCH(request: Request, { params }: Context) {
+31:   const session = await auth();
+32:   const user = session?.user;
+33:   if (!user) {
+34:     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+35:   }
+36:   if (user.role !== "ADMIN" && user.role !== "DRIVER") {
+37:     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+38:   }
+39:   if (!user.email) {
+40:     return NextResponse.json({ error: "Account email is required" }, { status: 403 });
+41:   }
+42: 
+43:   let input: unknown;
+44:   try {
+45:     input = await request.json();
+46:   } catch {
+47:     return NextResponse.json({ error: "Request body must be valid JSON" }, { status: 400 });
+48:   }
+49:   const parsed = updateSchema.safeParse(input);
+50:   if (!parsed.success) {
+51:     return NextResponse.json({ error: "Invalid status update" }, { status: 400 });
+52:   }
+53: 
+54:   const { trackingCode } = await params;
+55:   let result: Awaited<ReturnType<typeof transitionShipmentStatus>>;
+56:   try {
+57:     result = await transitionShipmentStatus(
+58:       trackingCode,
+59:       parsed.data.status,
+60:       parsed.data.notes,
+61:       { email: user.email, role: user.role },
+62:     );
+63:   } catch (error) {
+64:     if (error instanceof InvalidShipmentTransitionError) {
+65:       return NextResponse.json({ error: error.message }, { status: 422 });
+66:     }
+67:     throw error;
+68:   }
+69: 
+70:   if (result.kind === "not-found") {
+71:     return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
+72:   }
+73:   if (result.kind === "forbidden") {
+74:     return NextResponse.json({ error: "Shipment is not assigned to this driver" }, { status: 403 });
+75:   }
+76: 
+77:   return NextResponse.json({
+78:     data: result.shipment,
+79:     audit: { created: true, description: `Status changed to ${parsed.data.status}` },
+80:   });
+81: }
+
+QUESTION
+For FleetFlow's shipment status PATCH action, answer these five questions. 1. Can a customer change shipment status? 2. Must a driver own the shipment? 3. Must a driver accept the assignment first? 4. Must an admin accept the assignment first? 5. Does the status-change action check proof exists before delivery? Return JSON with keys customer_can_update, driver_must_own, driver_must_accept, admin_must_accept, proof_required. Each value must be yes, no, or unknown. Use only supplied evidence.

@@ -12,6 +12,8 @@ The shipment is the system of record. `StatusLog` is append-only audit history a
 
 `Branch` is the network's operational location record. It stores the active hub or partner branch, country, region, coordinates, and whether the branch currently participates in routing. Shipments can reference both an origin and destination branch while retaining human-readable route fields.
 
+See [Business logic](business-logic.md) for the implemented shipment, assignment, proof, handover, and alert rules, their current gaps, and proposed rules with acceptance scenarios. Proposed policies in that document are not yet enforced by the application.
+
 ## Application boundaries
 
 - **Web:** Next.js App Router, server-rendered pages where possible, client components only for interactive workflows.
@@ -33,7 +35,7 @@ The shipment is the system of record. `StatusLog` is append-only audit history a
 
 ## Status rules
 
-The initial implementation supports `PENDING`, `DISPATCHED`, `IN_TRANSIT`, `DELIVERED`, and `EXCEPTION`. The shared transition guard lives in `src/lib/shipment-rules.ts`; database-backed actions should call it before writing. Domain logic should reject impossible transitions and should record who initiated the change once actor metadata is added to the audit model.
+The implementation supports `PENDING`, `DISPATCHED`, `IN_TRANSIT`, `DELIVERED`, and `EXCEPTION`. The shared transition guard lives in `src/lib/shipment-rules.ts`; the status-change action calls it before writing and records the initiating actor's email in the audit event. The complete transition table and missing delivery prerequisites are documented in [Business logic](business-logic.md#3-shipment-lifecycle--bl-03).
 
 At minimum, a transition must:
 

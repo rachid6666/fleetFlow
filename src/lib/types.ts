@@ -45,6 +45,7 @@ export type TrackedShipment = Pick<
 };
 
 export type CustomerShipment = TrackedShipment & {
+  createdAt: string;
   id: string;
   updatedAt: string;
 };

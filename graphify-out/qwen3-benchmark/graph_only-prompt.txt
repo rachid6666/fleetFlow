@@ -1,0 +1,22 @@
+EVIDENCE
+Graph: graphify-out/graph.json (274 nodes) | Traversal: BFS depth=1 | Start (given): ['transitionShipmentStatus()'] | 6 nodes found
+
+NODE transitionShipmentStatus() [src=lib/data.ts loc=L583 community=0]
+NODE data.ts [src=lib/data.ts loc=L1 community=0]
+NODE [trackingCode]/route.ts [src=app/api/shipments/[trackingCode]/route.ts loc=L1 community=0]
+NODE toShipment() [src=lib/data.ts loc=L37 community=0]
+NODE assertTransition() [src=lib/shipment-rules.ts loc=L19 community=8]
+NODE PATCH() [src=app/api/shipments/[trackingCode]/route.ts loc=L30 community=0]
+EDGE PATCH() --calls [EXTRACTED context=call]--> transitionShipmentStatus() at=app/api/shipments/[trackingCode]/route.ts:L57
+EDGE transitionShipmentStatus() --calls [EXTRACTED context=call]--> assertTransition() at=lib/data.ts:L610
+EDGE transitionShipmentStatus() --calls [EXTRACTED context=call]--> toShipment() at=lib/data.ts:L630
+EDGE [trackingCode]/route.ts --imports [EXTRACTED context=import]--> transitionShipmentStatus() at=app/api/shipments/[trackingCode]/route.ts:L4
+EDGE data.ts --contains [EXTRACTED]--> transitionShipmentStatus() at=lib/data.ts:L583
+EDGE [trackingCode]/route.ts --imports_from [EXTRACTED context=import]--> data.ts at=app/api/shipments/[trackingCode]/route.ts:L4
+EDGE [trackingCode]/route.ts --contains [EXTRACTED]--> PATCH() at=app/api/shipments/[trackingCode]/route.ts:L30
+EDGE data.ts --imports [EXTRACTED context=import]--> assertTransition() at=lib/data.ts:L3
+EDGE data.ts --contains [EXTRACTED]--> toShipment() at=lib/data.ts:L37
+
+
+QUESTION
+For FleetFlow's shipment status PATCH action, answer these five questions. 1. Can a customer change shipment status? 2. Must a driver own the shipment? 3. Must a driver accept the assignment first? 4. Must an admin accept the assignment first? 5. Does the status-change action check proof exists before delivery? Return JSON with keys customer_can_update, driver_must_own, driver_must_accept, admin_must_accept, proof_required. Each value must be yes, no, or unknown. Use only supplied evidence.

@@ -36,6 +36,7 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — roles, boundaries, and key flows
+- [`docs/business-logic.md`](docs/business-logic.md) — implemented business rules, known gaps, proposed rules, and acceptance scenarios
 - [`docs/access-concept.md`](docs/access-concept.md) — server-side access rules and allowed/forbidden endpoint tests
 - [`docs/roadmap.md`](docs/roadmap.md) — phased implementation plan and acceptance criteria
 - [`docs/ai-prompts.md`](docs/ai-prompts.md) — prompts for building the major slices with coding agents

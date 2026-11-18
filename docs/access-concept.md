@@ -41,6 +41,7 @@ Authorization is enforced in the server query, not by a client-side filter:
 | Endpoint | Admin | Driver | Customer |
 |---|---|---|---|
 | `GET /api/shipments` | All shipments | Assigned shipments | Own safe shipment views |
+| `GET /api/customer/shipments/export` | `403` | `403` | Own matching shipments as CSV |
 | `GET /api/shipments/:trackingCode` | Any shipment | Assigned shipment | Own shipment only; otherwise `404` |
 | `PATCH /api/shipments/:trackingCode` | Allowed | Assigned and accepted only | `403` |
 | Notes and delivery proof | Allowed | Assigned and accepted only | `403` |
@@ -50,6 +51,10 @@ Authorization is enforced in the server query, not by a client-side filter:
 | Superset analytics | Allowed | `403` | `403` |
 
 Missing sessions return `401`. Accessing another account's record returns `404` where exposing its existence would be unnecessary.
+
+The customer CSV export applies the tracking-code, status, route, and creation-date filters from `/customer` to all matching shipments. Dates use inclusive UTC calendar days. Export columns are tracking code, origin, destination, status, creation time, and the displayed arrival label. CSV responses use private, no-store caching and escape spreadsheet formula prefixes. Invalid filters return `400`.
+
+Drivers can search assigned trips by tracking code or route, filter by shipment and assignment status, and navigate six trips per page. Customer and driver page links retain filters. Submitting a filter form starts on the first page, and pages beyond the result count show the last available page. Workspace totals cover all of the account's shipments. Filtering and pagination currently run after the role-scoped database query loads the records.
 
 ## Verification
 
