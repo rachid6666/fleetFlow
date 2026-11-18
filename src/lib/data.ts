@@ -1,11 +1,17 @@
-import { Prisma, type ShipmentStatus } from "@prisma/client";
+import { Prisma, type AssignmentStatus, type DriverAvailability, type ShipmentStatus } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { assertTransition } from "./shipment-rules";
 import { prisma } from "./prisma";
-import type { Shipment, ShipmentEvent } from "./types";
+import type { AppRole } from "./roles";
+import type { CustomerShipment, Shipment, ShipmentEvent } from "./types";
 
 const shipmentInclude = {
-  driver: { select: { name: true, email: true } },
+  driver: { select: { id: true, name: true, email: true } },
   customer: { select: { name: true } },
+  deliveryProofs: {
+    orderBy: { createdAt: "desc" },
+    select: { id: true, originalName: true, contentType: true, sizeBytes: true, createdAt: true },
+  },
 } satisfies Prisma.ShipmentInclude;
 
 type ShipmentRecord = Prisma.ShipmentGetPayload<{
@@ -35,12 +41,166 @@ function toShipment(record: ShipmentRecord): Shipment {
     origin: record.origin,
     destination: record.destination,
     status: record.status,
+    assignmentStatus: record.assignmentStatus,
+    deliveryProofs: record.deliveryProofs.map((proof) => ({
+      id: proof.id,
+      originalName: proof.originalName,
+      contentType: proof.contentType,
+      sizeBytes: proof.sizeBytes,
+      uploadedAt: proof.createdAt.toISOString(),
+    })),
+    driverId: record.driverId,
     driverName: record.driver?.name ?? null,
     customerName: record.customer.name,
     updatedAt: formatUpdatedAt(record.updatedAt),
     eta: formatEta(record.status),
     notes: record.notes ?? undefined,
   };
+}
+
+export type ShipmentFormOptions = {
+  branches: Array<{ id: string; code: string; name: string; city: string; country: string }>;
+  drivers: Array<{ id: string; name: string; email: string }>;
+  customers: Array<{ id: string; name: string; email: string }>;
+};
+
+export type DriverAvailabilityRecord = {
+  id: string;
+  name: string;
+  email: string;
+  availability: DriverAvailability;
+};
+
+export async function getDriverByEmail(email: string): Promise<DriverAvailabilityRecord | null> {
+  return prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" }, role: "DRIVER" },
+    select: { id: true, name: true, email: true, availability: true },
+  });
+}
+
+export async function listDrivers(): Promise<DriverAvailabilityRecord[]> {
+  return prisma.user.findMany({
+    where: { role: "DRIVER" },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, email: true, availability: true },
+  });
+}
+
+export async function updateDriverAvailability(
+  driverId: string,
+  availability: DriverAvailability,
+): Promise<DriverAvailabilityRecord | null> {
+  const driver = await prisma.user.findFirst({
+    where: { id: driverId, role: "DRIVER" },
+    select: { id: true },
+  });
+  if (!driver) return null;
+
+  return prisma.user.update({
+    where: { id: driver.id },
+    data: { availability },
+    select: { id: true, name: true, email: true, availability: true },
+  });
+}
+
+export async function updateDriverAvailabilityByEmail(
+  email: string,
+  availability: DriverAvailability,
+): Promise<DriverAvailabilityRecord | null> {
+  const driver = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" }, role: "DRIVER" },
+    select: { id: true },
+  });
+  if (!driver) return null;
+  return updateDriverAvailability(driver.id, availability);
+}
+
+export type CreateShipmentInput = {
+  originBranchId: string;
+  destinationBranchId: string;
+  customerId: string;
+  driverId?: string | null;
+  notes?: string;
+  actorEmail: string;
+};
+
+export type CreateShipmentResult =
+  | { kind: "created"; shipment: Shipment }
+  | { kind: "invalid"; message: string };
+
+export async function getShipmentFormOptions(): Promise<ShipmentFormOptions> {
+  const [branches, drivers, customers] = await Promise.all([
+    prisma.branch.findMany({
+      where: { isActive: true },
+      orderBy: [{ country: "asc" }, { city: "asc" }],
+      select: { id: true, code: true, name: true, city: true, country: true },
+    }),
+    prisma.user.findMany({
+      where: { role: "DRIVER" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true },
+    }),
+    prisma.user.findMany({
+      where: { role: "CUSTOMER" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true },
+    }),
+  ]);
+
+  return { branches, drivers, customers };
+}
+
+export async function createShipment(input: CreateShipmentInput): Promise<CreateShipmentResult> {
+  const [originBranch, destinationBranch, customer, driver] = await Promise.all([
+    prisma.branch.findFirst({ where: { id: input.originBranchId, isActive: true } }),
+    prisma.branch.findFirst({ where: { id: input.destinationBranchId, isActive: true } }),
+    prisma.user.findFirst({ where: { id: input.customerId, role: "CUSTOMER" } }),
+    input.driverId
+      ? prisma.user.findFirst({ where: { id: input.driverId, role: "DRIVER" } })
+      : Promise.resolve(null),
+  ]);
+
+  if (!originBranch) return { kind: "invalid", message: "Select a valid origin branch" };
+  if (!destinationBranch) return { kind: "invalid", message: "Select a valid destination branch" };
+  if (originBranch.id === destinationBranch.id) {
+    return { kind: "invalid", message: "Origin and destination must be different branches" };
+  }
+  if (!customer) return { kind: "invalid", message: "Select a valid customer" };
+  if (input.driverId && !driver) return { kind: "invalid", message: "Select a valid driver" };
+
+  const trackingCode = `FF-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase()}`;
+  const notes = input.notes?.trim() || null;
+
+  const record = await prisma.$transaction(async (transaction) => {
+    const shipment = await transaction.shipment.create({
+      data: {
+        trackingCode,
+        origin: originBranch.city,
+        destination: destinationBranch.city,
+        originBranchId: originBranch.id,
+        destinationBranchId: destinationBranch.id,
+        customerId: customer.id,
+        driverId: driver?.id ?? null,
+        assignmentStatus: driver ? "PENDING" : "ACCEPTED",
+        notes,
+        status: "PENDING",
+      },
+      include: shipmentInclude,
+    });
+
+    await transaction.statusLog.create({
+      data: {
+        shipmentId: shipment.id,
+        status: "PENDING",
+        actorEmail: input.actorEmail,
+        description: `Shipment created with route ${originBranch.city} to ${destinationBranch.city}`,
+      },
+    });
+
+    return shipment;
+  });
+
+  return { kind: "created", shipment: toShipment(record) };
 }
 
 export async function listShipments() {
@@ -51,6 +211,149 @@ export async function listShipments() {
   return records.map(toShipment);
 }
 
+export type AssignShipmentDriverResult =
+  | { kind: "updated"; shipment: Shipment }
+  | { kind: "not-found" }
+  | { kind: "invalid-driver" };
+
+export async function assignShipmentDriver(
+  trackingCode: string,
+  driverId: string | null,
+  actorEmail: string,
+): Promise<AssignShipmentDriverResult> {
+  return prisma.$transaction(async (transaction) => {
+    const current = await transaction.shipment.findFirst({
+      where: { trackingCode: { equals: trackingCode.trim(), mode: "insensitive" } },
+      include: shipmentInclude,
+    });
+
+    if (!current) return { kind: "not-found" };
+    if (current.driverId === driverId) return { kind: "updated", shipment: toShipment(current) };
+
+    const driver = driverId
+      ? await transaction.user.findFirst({ where: { id: driverId, role: "DRIVER" }, select: { id: true, name: true } })
+      : null;
+    if (driverId && !driver) return { kind: "invalid-driver" };
+
+    const updated = await transaction.shipment.update({
+      where: { id: current.id },
+      data: {
+        driverId: driver?.id ?? null,
+        assignmentStatus: driver ? "PENDING" : "ACCEPTED",
+      },
+      include: shipmentInclude,
+    });
+
+    await transaction.statusLog.create({
+      data: {
+        shipmentId: updated.id,
+        status: updated.status,
+        actorEmail,
+        description: driver
+          ? `Driver assigned: ${driver.name}; awaiting driver response`
+          : "Driver unassigned",
+      },
+    });
+
+    return { kind: "updated", shipment: toShipment(updated) };
+  });
+}
+
+export type AssignmentResponseResult =
+  | { kind: "updated"; shipment: Shipment }
+  | { kind: "not-found" }
+  | { kind: "forbidden" }
+  | { kind: "not-pending" };
+
+export async function respondToShipmentAssignment(
+  trackingCode: string,
+  assignmentStatus: Extract<AssignmentStatus, "ACCEPTED" | "REJECTED">,
+  actorEmail: string,
+): Promise<AssignmentResponseResult> {
+  return prisma.$transaction(async (transaction) => {
+    const current = await transaction.shipment.findFirst({
+      where: { trackingCode: { equals: trackingCode.trim(), mode: "insensitive" } },
+      include: { driver: { select: { email: true } } },
+    });
+
+    if (!current) return { kind: "not-found" };
+    if (current.driver?.email.toLowerCase() !== actorEmail.toLowerCase()) {
+      return { kind: "forbidden" };
+    }
+    if (current.assignmentStatus !== "PENDING") return { kind: "not-pending" };
+
+    const updated = await transaction.shipment.update({
+      where: { id: current.id },
+      data: {
+        assignmentStatus,
+        ...(assignmentStatus === "REJECTED" ? { driverId: null } : {}),
+      },
+      include: shipmentInclude,
+    });
+
+    await transaction.statusLog.create({
+      data: {
+        shipmentId: updated.id,
+        status: updated.status,
+        actorEmail,
+        description: assignmentStatus === "ACCEPTED"
+          ? "Driver accepted the shipment assignment"
+          : "Driver rejected the shipment assignment",
+      },
+    });
+
+    return { kind: "updated", shipment: toShipment(updated) };
+  });
+}
+
+export type AddShipmentNoteResult =
+  | { kind: "updated"; shipment: Shipment }
+  | { kind: "not-found" }
+  | { kind: "forbidden" };
+
+export async function addShipmentNote(
+  trackingCode: string,
+  notes: string,
+  location: string | undefined,
+  actor: ShipmentActor,
+): Promise<AddShipmentNoteResult> {
+  return prisma.$transaction(async (transaction) => {
+    const current = await transaction.shipment.findFirst({
+      where: { trackingCode: { equals: trackingCode.trim(), mode: "insensitive" } },
+      include: { driver: { select: { email: true } } },
+    });
+
+    if (!current) return { kind: "not-found" };
+    if (
+      actor.role === "DRIVER" &&
+      current.driver?.email.toLowerCase() !== actor.email.toLowerCase()
+    ) {
+      return { kind: "forbidden" };
+    }
+    if (actor.role === "DRIVER" && current.assignmentStatus !== "ACCEPTED") {
+      return { kind: "forbidden" };
+    }
+
+    const updated = await transaction.shipment.update({
+      where: { id: current.id },
+      data: { notes: notes.trim() },
+      include: shipmentInclude,
+    });
+
+    await transaction.statusLog.create({
+      data: {
+        shipmentId: updated.id,
+        status: updated.status,
+        actorEmail: actor.email,
+        location: location?.trim() || null,
+        description: `Delivery note updated: ${notes.trim()}`,
+      },
+    });
+
+    return { kind: "updated", shipment: toShipment(updated) };
+  });
+}
+
 export async function listShipmentsForDriver(email: string) {
   const records = await prisma.shipment.findMany({
     where: { driver: { email: { equals: email, mode: "insensitive" } } },
@@ -58,6 +361,75 @@ export async function listShipmentsForDriver(email: string) {
     orderBy: { updatedAt: "desc" },
   });
   return records.map(toShipment);
+}
+
+function customerUpdateDescription(status: ShipmentStatus) {
+  if (status === "PENDING") return "Shipment booked";
+  if (status === "DISPATCHED") return "Shipment dispatched";
+  if (status === "IN_TRANSIT") return "Shipment in transit";
+  if (status === "DELIVERED") return "Shipment delivered";
+  return "Shipment requires attention";
+}
+
+const customerShipmentSelect = {
+  createdAt: true,
+  id: true,
+  trackingCode: true,
+  origin: true,
+  destination: true,
+  status: true,
+  updatedAt: true,
+  updates: {
+    orderBy: { createdAt: "desc" },
+    select: { status: true, createdAt: true },
+  },
+} satisfies Prisma.ShipmentSelect;
+
+type CustomerShipmentRecord = Prisma.ShipmentGetPayload<{ select: typeof customerShipmentSelect }>;
+
+function toCustomerShipment(record: CustomerShipmentRecord): CustomerShipment {
+  return {
+    createdAt: record.createdAt.toISOString(),
+    id: record.id,
+    trackingCode: record.trackingCode,
+    origin: record.origin,
+    destination: record.destination,
+    status: record.status,
+    eta: formatEta(record.status),
+    updatedAt: formatUpdatedAt(record.updatedAt),
+    events: record.updates.map((event) => ({
+      status: event.status,
+      description: customerUpdateDescription(event.status),
+      createdAt: event.createdAt.toISOString(),
+    })),
+  };
+}
+
+export async function listShipmentsForCustomer(email: string): Promise<CustomerShipment[]> {
+  const records = await prisma.shipment.findMany({
+    where: { customer: { email: { equals: email, mode: "insensitive" } } },
+    select: customerShipmentSelect,
+    orderBy: { updatedAt: "desc" },
+  });
+  return records.map(toCustomerShipment);
+}
+
+export async function getShipmentForCustomer(
+  email: string,
+  trackingCode: string,
+): Promise<CustomerShipment | undefined> {
+  const code = trackingCode.trim();
+  if (!code) return undefined;
+
+  const record = await prisma.shipment.findFirst({
+    where: {
+      trackingCode: { equals: code, mode: "insensitive" },
+      customer: { email: { equals: email, mode: "insensitive" } },
+    },
+    select: customerShipmentSelect,
+  });
+
+  return record ? toCustomerShipment(record) : undefined;
 }
 
 export async function getRecentActivity(take = 3) {
@@ -174,16 +546,30 @@ export async function getShipmentAlerts(now = new Date()) {
   };
 }
 
-export async function getShipmentByTrackingCode(code: string) {
+export async function getShipmentForActor(
+  code: string,
+  actor: { role: AppRole; email?: string | null },
+) {
+  const where: Prisma.ShipmentWhereInput = {
+    trackingCode: { equals: code.trim(), mode: "insensitive" },
+  };
+
+  if (actor.role !== "ADMIN") {
+    if (!actor.email) return undefined;
+    if (actor.role === "CUSTOMER") {
+      where.customer = { email: { equals: actor.email, mode: "insensitive" } };
+    } else {
+      where.driver = { email: { equals: actor.email, mode: "insensitive" } };
+    }
+  }
+
   const shipment = await prisma.shipment.findFirst({
-    where: { trackingCode: { equals: code.trim(), mode: "insensitive" } },
+    where,
     select: {
-      id: true,
       trackingCode: true,
       origin: true,
       destination: true,
       status: true,
-      updatedAt: true,
       updates: {
         orderBy: { createdAt: "desc" },
         select: { status: true, description: true, createdAt: true },
@@ -195,7 +581,7 @@ export async function getShipmentByTrackingCode(code: string) {
 
   const events: ShipmentEvent[] = shipment.updates.map((event) => ({
     status: event.status,
-    description: event.description,
+    description: actor.role === "CUSTOMER" ? customerUpdateDescription(event.status) : event.description,
     createdAt: event.createdAt.toISOString(),
   }));
 
@@ -235,6 +621,9 @@ export async function transitionShipmentStatus(
       actor.role === "DRIVER" &&
       current.driver?.email.toLowerCase() !== actor.email.toLowerCase()
     ) {
+      return { kind: "forbidden" };
+    }
+    if (actor.role === "DRIVER" && current.assignmentStatus !== "ACCEPTED") {
       return { kind: "forbidden" };
     }
 

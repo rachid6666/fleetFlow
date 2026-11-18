@@ -1,32 +1,60 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { statusLabels, type ShipmentStatus } from "@/lib/types";
-import { canTransition } from "@/lib/shipment-rules";
+import { getAvailableTransitions } from "@/lib/shipment-rules";
 
 export function StatusActions({ trackingCode, current }: { trackingCode: string; current: ShipmentStatus }) {
+  const router = useRouter();
   const [status, setStatus] = useState(current);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState<ShipmentStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const next: ShipmentStatus | null = (["DISPATCHED", "IN_TRANSIT"] as ShipmentStatus[]).find((candidate) => canTransition(status, candidate)) ?? null;
-  if (!next) return <StatusBadgeFallback status={status} />;
-  async function updateStatus() {
-    setSaving(true);
+  const nextStatuses = getAvailableTransitions(status);
+
+  if (nextStatuses.length === 0) return <StatusBadgeFallback status={status} />;
+
+  async function updateStatus(next: ShipmentStatus) {
+    setSaving(next);
     setError(null);
     try {
       const response = await fetch(`/api/shipments/${trackingCode}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: next }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Could not update shipment");
       setStatus(payload.data.status);
+      router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not update shipment");
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
   }
-  return <div><button className="button" disabled={saving} onClick={updateStatus}>{saving ? "Saving…" : `Mark ${statusLabels[next]}`}</button>{error ? <small style={{ display: "block", color: "var(--red)", marginTop: 6 }}>{error}</small> : null}</div>;
+
+  return (
+    <div className="status-action-group">
+      {nextStatuses.map((next, index) => (
+        <button
+          className={`button${next === "EXCEPTION" || index > 0 ? " secondary" : ""}`}
+          type="button"
+          disabled={saving !== null}
+          onClick={() => updateStatus(next)}
+          key={next}
+        >
+          {saving === next ? "Saving…" : transitionLabel(next)}
+        </button>
+      ))}
+      {error ? <small className="status-action-error">{error}</small> : null}
+    </div>
+  );
 }
 
 function StatusBadgeFallback({ status }: { status: ShipmentStatus }) {
   return <span className={`status-badge status-${status.toLowerCase()}`}>{statusLabels[status]}</span>;
+}
+
+function transitionLabel(status: ShipmentStatus) {
+  if (status === "DISPATCHED") return "Dispatch";
+  if (status === "IN_TRANSIT") return "Mark in transit";
+  if (status === "DELIVERED") return "Mark delivered";
+  return "Report exception";
 }

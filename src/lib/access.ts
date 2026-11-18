@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../auth";
 
-export type AppRole = "ADMIN" | "DRIVER" | "CUSTOMER";
+import type { AppRole } from "./roles";
+
+export type { AppRole } from "./roles";
 
 export type AccessActor = {
   id?: string;
@@ -29,6 +31,9 @@ export function accessError(status: 401 | 403) {
   );
 }
 
-export function isAssignedTo(actor: AccessActor, driverName: string | null) {
-  return actor.role === "ADMIN" || (actor.role === "DRIVER" && Boolean(actor.name && actor.name === driverName));
+export function isAssignedTo(actor: AccessActor, driverEmail: string | null) {
+  return actor.role === "ADMIN" || (
+    actor.role === "DRIVER" &&
+    Boolean(actor.email && driverEmail && actor.email.toLowerCase() === driverEmail.toLowerCase())
+  );
 }

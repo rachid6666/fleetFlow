@@ -63,7 +63,10 @@ export async function processHandoverEvent(input: HandoverInput): Promise<Handov
       if (!toDriver || toDriver.role !== "DRIVER") throw new HandoverRejected("to_driver_id must reference a driver");
       if (shipment.driverId !== input.fromDriverId) throw new HandoverRejected("from_driver_id is not the shipment's current driver");
 
-      await tx.shipment.update({ where: { id: shipment.id }, data: { driverId: input.toDriverId } });
+      await tx.shipment.update({
+        where: { id: shipment.id },
+        data: { driverId: input.toDriverId, assignmentStatus: "PENDING" },
+      });
       await tx.statusLog.create({
         data: {
           shipmentId: shipment.id,
@@ -102,7 +105,13 @@ export async function emitHandoverEvent(event: { eventId: string; shipmentId: st
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json", ...(process.env.N8N_WEBHOOK_SECRET ? { "x-fleetflow-webhook-secret": process.env.N8N_WEBHOOK_SECRET } : {}) },
-      body: JSON.stringify(event),
+      body: JSON.stringify({
+        event_id: event.eventId,
+        shipment_id: event.shipmentId,
+        from_driver_id: event.fromDriverId,
+        to_driver_id: event.toDriverId,
+        timestamp: event.timestamp,
+      }),
     });
     if (!response.ok) return { sent: false as const, reason: `n8n returned HTTP ${response.status}` };
     return { sent: true as const };

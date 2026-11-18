@@ -1,0 +1,65 @@
+{
+  "model": "qwen3:4b",
+  "question": "For FleetFlow's shipment status PATCH action, answer these five questions. 1. Can a customer change shipment status? 2. Must a driver own the shipment? 3. Must a driver accept the assignment first? 4. Must an admin accept the assignment first? 5. Does the status-change action check proof exists before delivery? Return JSON with keys customer_can_update, driver_must_own, driver_must_accept, admin_must_accept, proof_required. Each value must be yes, no, or unknown. Use only supplied evidence.",
+  "expected": {
+    "customer_can_update": "no",
+    "driver_must_own": "yes",
+    "driver_must_accept": "yes",
+    "admin_must_accept": "no",
+    "proof_required": "no"
+  },
+  "cases": [
+    {
+      "case": "relevant_full_files",
+      "input_tokens": 5960,
+      "output_tokens": 50,
+      "seconds": 25.57,
+      "prompt_seconds": 5.72,
+      "load_seconds": 8.76,
+      "answer": {
+        "customer_can_update": "no",
+        "driver_must_own": "yes",
+        "driver_must_accept": "yes",
+        "admin_must_accept": "no",
+        "proof_required": "unknown"
+      },
+      "correct_of_five": 4,
+      "done_reason": "stop"
+    },
+    {
+      "case": "graph_only",
+      "input_tokens": 598,
+      "output_tokens": 50,
+      "seconds": 5.04,
+      "prompt_seconds": 0.79,
+      "load_seconds": 0.01,
+      "answer": {
+        "customer_can_update": "unknown",
+        "driver_must_own": "unknown",
+        "driver_must_accept": "unknown",
+        "admin_must_accept": "unknown",
+        "proof_required": "unknown"
+      },
+      "correct_of_five": 0,
+      "done_reason": "stop"
+    },
+    {
+      "case": "graph_and_source_excerpts",
+      "input_tokens": 2084,
+      "output_tokens": 50,
+      "seconds": 6.77,
+      "prompt_seconds": 1.72,
+      "load_seconds": 0.01,
+      "answer": {
+        "customer_can_update": "no",
+        "driver_must_own": "yes",
+        "driver_must_accept": "yes",
+        "admin_must_accept": "no",
+        "proof_required": "unknown"
+      },
+      "correct_of_five": 4,
+      "done_reason": "stop"
+    }
+  ],
+  "limits": "One task, one run per case, fixed order. Latencies include model load/cache effects. Graph built from src code only. Focused excerpts selected by the assistant using graph source locations."
+}

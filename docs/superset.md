@@ -1,4 +1,6 @@
-# Apache Superset network map
+﻿# Apache Superset network map
+
+For the complete application dashboard, use the [FleetFlow analytics setup](analytics.md). It provisions 21 charts automatically and embeds them at `/admin/analytics`. The instructions below concern the separate optional network map.
 
 FleetFlow supports an optional embedded Apache Superset dashboard for a richer operational map and analytics layer. When Superset is not configured or the guest-token request fails, the landing page automatically shows the built-in FleetFlow branch map.
 

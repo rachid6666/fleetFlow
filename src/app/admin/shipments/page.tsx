@@ -1,11 +1,13 @@
+import { CreateShipmentButton } from "@/components/create-shipment-button";
+import { DriverAssignment } from "@/components/driver-assignment";
 import { Sidebar } from "@/components/sidebar";
 import { StatusBadge } from "@/components/status-badge";
-import { listShipments } from "@/lib/data";
+import { getShipmentFormOptions, listShipments } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function ShipmentsPage() {
-  const shipments = await listShipments();
+  const [shipments, shipmentOptions] = await Promise.all([listShipments(), getShipmentFormOptions()]);
 
   return (
     <div className="app-shell">
@@ -17,7 +19,7 @@ export default async function ShipmentsPage() {
             <h1>Shipment desk</h1>
             <p className="subtitle">Assign, monitor, and resolve every shipment in one place.</p>
           </div>
-          <button className="button">+ Create shipment</button>
+          <CreateShipmentButton options={shipmentOptions} />
         </div>
         <section className="panel">
           <table className="shipment-table">
@@ -41,7 +43,17 @@ export default async function ShipmentsPage() {
                   <td>
                     <StatusBadge status={shipment.status} />
                   </td>
-                  <td>{shipment.driverName ?? "Unassigned"}</td>
+                  <td>
+                    <div>{shipment.driverName ?? "Unassigned"}</div>
+                    {shipment.driverId && shipment.assignmentStatus === "PENDING" ? (
+                      <small className="assignment-status">Awaiting response</small>
+                    ) : null}
+                    <DriverAssignment
+                      trackingCode={shipment.trackingCode}
+                      currentDriverId={shipment.driverId}
+                      drivers={shipmentOptions.drivers}
+                    />
+                  </td>
                   <td>{shipment.customerName}</td>
                   <td>{shipment.eta}</td>
                 </tr>

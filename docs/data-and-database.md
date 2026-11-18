@@ -10,7 +10,20 @@ The app uses Prisma with the existing PostgreSQL schema in [`../prisma/schema.pr
 - `npm run db:validate` validates the Prisma schema.
 - `npm run db:generate` regenerates the Prisma client.
 
-Do not commit `.env` or paste database connection strings into source files. Keep the local values supplied by the Neon CLI.
+Do not commit `.env` or paste database connection strings into source files. Keep the values supplied by the Neon CLI in the ignored `.env` files.
+
+## Database topology
+
+Docker does not run a PostgreSQL container for FleetFlow or Authentik.
+
+| Service | Neon database | Runtime connection | Migration/direct connection |
+|---|---|---|---|
+| FleetFlow app and Prisma | `fleet` | `DATABASE_URL` pooled endpoint | `DATABASE_URL_UNPOOLED` direct endpoint |
+| Authentik server and worker | `authentik` | `PG_HOST` pooled endpoint | `PG_DIRECT_HOST` direct endpoint |
+
+The two databases remain isolated even though they can live in the same Neon project. Authentik uses the direct endpoint for advisory-lock coordination and future schema upgrades. Its Compose configuration disables automatic startup migrations by default to avoid leaking a Neon advisory lock across container restarts; see [`authentik.md`](authentik.md#neon-migration-workaround).
+
+Superset does not use a separate PostgreSQL server. Its metadata stays in the `metadata` Docker volume, while analytics queries connect to the FleetFlow `fleet` database through `superset/.env`.
 
 ## What the UI reads
 
@@ -19,15 +32,21 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | Page or endpoint | Data source | Access and behavior |
 |---|---|---|
 | `/admin` | `loads`, `trips`, `drivers`, `trucks`, `delivery_events`, `safety_incidents` | Admin-only; live load revenue, distance, active fleet, delivery performance, and recent loads |
+| `/admin` live GPS panel | `Shipment`, `ShipmentLocationPing`, related `User` | Admin-only; latest position, route trail, ETA, progress, and stale-feed state |
+| `/admin/copilot` | Server-built aggregate snapshot from FleetFlow and Kaggle tables | Admin-only; grounded AI answers through local Ollama with a rules fallback |
 | `/admin/shipments` | `Shipment`, related `User` records | Admin-only; live shipment, driver, and customer data |
-| `/driver` | `Shipment`, related driver `User` | Driver-only; shipments assigned to the signed-in account's email |
-| `/track?code=...` | `Shipment`, `StatusLog` | Public tracking lookup; returns only tracking-safe fields |
+| `/driver` | `Shipment`, signed-in driver `User` | Driver-only; shipments assigned to the signed-in account email; no full driver directory |
+| `/customer` | `Shipment`, related customer `User`, `StatusLog` | Customer-only; own shipments and customer-safe timelines with internal notes and driver details omitted |
+| `/track` | None | Compatibility redirect to `/customer` |
 | `GET /api/health` | PostgreSQL `SELECT 1` | Reports `503` if the database cannot be reached |
-| `GET /api/shipments` | `Shipment`, related `User` records | Requires an admin or driver session; drivers see only their own assignments |
-| `GET /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Public tracking lookup; does not return customer, driver, or internal notes |
+| `GET /api/shipments` | `Shipment`, related `User` records | Requires a session; admins see all, drivers see assignments, and customers see own safe views |
+| `GET /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires a session; returns any shipment to admins, assigned shipments to drivers, and own shipments to customers |
 | `PATCH /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires an admin or assigned driver; status update and audit event are one transaction |
+| `GET /api/tracking/live` | `Shipment`, `ShipmentLocationPing` | Admin-only live fleet map data |
+| `POST /api/tracking/pings` | `Shipment`, `ShipmentLocationPing` | Admin or assigned driver; appends GPS telemetry without changing shipment status |
+| `POST /api/copilot` | Aggregated operational snapshot | Admin-only AI operations question |
 
-FleetFlow's separate operational records are stored in the `User`, `Branch`, `Shipment`, and `StatusLog` tables. `/admin/shipments`, `/driver`, and customer tracking continue to read those tables. The seed script provisions reference branches; it does not create shipment demo records. Shipment lists remain empty until FleetFlow shipments are created.
+FleetFlow's separate operational records are stored in the `User`, `Branch`, `Shipment`, and `StatusLog` tables. `/admin/shipments`, `/driver`, and `/customer` read those tables through role-scoped server queries. The seed script provisions reference branches; it does not create shipment demo records. Shipment lists remain empty until FleetFlow shipments are created.
 
 ## Kaggle logistics dataset
 

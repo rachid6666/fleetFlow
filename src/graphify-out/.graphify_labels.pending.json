@@ -1,0 +1,16 @@
+{
+  "0": "ref_next",
+  "1": "types.ts",
+  "2": "data.ts",
+  "3": "driver/page.tsx",
+  "4": "[trackingCode]/handover/route.ts",
+  "5": "shipments/page.tsx",
+  "6": "ref_react",
+  "7": "proof/route.ts",
+  "8": "copilot/route.ts",
+  "9": "drivers/page.tsx",
+  "10": "next-auth.d.ts",
+  "11": "availability/route.ts",
+  "12": "app/layout.tsx",
+  "13": "{ GET, POST }"
+}

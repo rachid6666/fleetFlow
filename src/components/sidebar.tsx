@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { auth, signOut } from "../../auth";
 import { SidebarNavigation } from "./sidebar-navigation";
+import { workspaceLabelForRole } from "@/lib/roles";
 
 export async function Sidebar() {
   const session = await auth();
+  const role = session?.user?.role ?? null;
 
   return (
     <aside className="sidebar">
@@ -11,8 +13,8 @@ export async function Sidebar() {
         <span className="brand-mark">F</span>
         <span>FleetFlow</span>
       </Link>
-      <div className="workspace-label">OPERATIONS CENTER</div>
-      <SidebarNavigation />
+      <div className="workspace-label">{role ? workspaceLabelForRole(role) : "FLEETFLOW ACCESS"}</div>
+      <SidebarNavigation role={role} />
       {session?.user ? (
         <form className="sidebar-logout" action={async () => {
             "use server";

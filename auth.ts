@@ -22,6 +22,9 @@ function roleFromGroups(groups: string[] = []) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  pages: {
+    error: "/login",
+  },
   providers: [
     {
       id: "authentik",
@@ -30,7 +33,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: process.env.AUTHENTIK_ISSUER || "http://localhost:9000/application/o/fleetflow/",
       clientId: process.env.AUTHENTIK_ID,
       clientSecret: process.env.AUTHENTIK_SECRET,
-      authorization: { params: { scope: "openid email profile groups" } },
+      authorization: {
+        ...(process.env.AUTHENTIK_AUTHORIZATION_URL
+          ? { url: process.env.AUTHENTIK_AUTHORIZATION_URL }
+          : {}),
+        params: { scope: "openid email profile groups" },
+      },
       profile(profile: AuthentikProfile) {
         return {
           id: profile.sub ?? profile.email ?? profile.preferred_username ?? "authentik-user",

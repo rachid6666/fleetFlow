@@ -1,0 +1,102 @@
+﻿:root,
+body,
+#app,
+#app > div {
+  background: #f5f8f7 !important;
+  color: #102a2a !important;
+  color-scheme: light !important;
+}
+.dashboard,
+.dashboard-content,
+.dashboard-component-tabs,
+.ant-tabs,
+.ant-tabs-content-holder,
+.ant-tabs-content,
+.ant-tabs-tabpane,
+.grid-container,
+.grid-row,
+.grid-column,
+.dragdroppable-row,
+.dashboard-component {
+  background: #f5f8f7 !important;
+  color: #102a2a !important;
+}
+.dashboard .ant-tabs-nav {
+  background: #ffffff !important;
+  border: 1px solid #d8e4e1 !important;
+  border-radius: 12px !important;
+  padding: 0 12px !important;
+  margin: 8px !important;
+}
+.ant-tabs-tab,
+.ant-tabs-tab-btn {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #0f766e !important;
+}
+.ant-tabs-ink-bar {
+  background: #0f766e !important;
+}
+.dashboard-component-chart-holder,
+.dashboard-chart,
+.chart-container,
+.chart-card,
+.chart-slice {
+  background: #ffffff !important;
+  border: 1px solid #d8e4e1 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgba(15, 54, 52, 0.07) !important;
+  margin: 7px !important;
+  overflow: hidden !important;
+}
+.chart-header,
+.chart-header a,
+.header-title,
+.editable-title,
+.ant-card-head-title {
+  color: #102a2a !important;
+  font-weight: 650 !important;
+}
+.chart-container svg text,
+.echarts-for-react text,
+.nv-axis text {
+  fill: #64748b !important;
+  color: #64748b !important;
+}
+.ant-table,
+.ant-table-container,
+.ant-table-content,
+.ant-table-body,
+.ant-table-cell {
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+.ant-table-thead > tr > th {
+  background: #f2f7f6 !important;
+  color: #0f3d3a !important;
+  border-color: #d8e4e1 !important;
+}
+.ant-table-tbody > tr:hover > td {
+  background: #f0fdfa !important;
+}
+.ant-pagination,
+.ant-pagination-item,
+.ant-select-selector,
+.ant-input,
+.ant-input-affix-wrapper,
+.search input {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border-color: #d8e4e1 !important;
+}
+.ant-btn-default {
+  background: #ffffff !important;
+  color: #0f3d3a !important;
+  border-color: #d8e4e1 !important;
+}
+.dashboard .ant-empty-description,
+.dashboard .ant-typography {
+  color: #64748b !important;
+}

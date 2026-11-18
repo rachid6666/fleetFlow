@@ -14,6 +14,17 @@ enum Role {
   CUSTOMER
 }
 
+enum DriverAvailability {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum AssignmentStatus {
+  ACCEPTED
+  PENDING
+  REJECTED
+}
+
 enum ShipmentStatus {
   PENDING
   DISPATCHED
@@ -33,6 +44,7 @@ model User {
   password        String
   name            String
   role            Role       @default(CUSTOMER)
+  availability    DriverAvailability @default(AVAILABLE)
   shipments       Shipment[] @relation("DriverShipments")
   clientShipments Shipment[] @relation("CustomerShipments")
   createdAt       DateTime   @default(now())
@@ -61,6 +73,11 @@ model Shipment {
   id                  String         @id @default(cuid())
   trackingCode        String         @unique @default(uuid())
   origin              String
+  originLatitude       Decimal?       @db.Decimal(9, 6)
+  originLongitude      Decimal?       @db.Decimal(9, 6)
+  destinationLatitude  Decimal?       @db.Decimal(9, 6)
+  destinationLongitude Decimal?       @db.Decimal(9, 6)
+  estimatedArrival     DateTime?
   destination         String
   originBranchId      String?
   originBranch        Branch?        @relation("OriginBranch", fields: [originBranchId], references: [id])
@@ -70,9 +87,12 @@ model Shipment {
   notes               String?
   driverId            String?
   driver              User?          @relation("DriverShipments", fields: [driverId], references: [id])
+  assignmentStatus    AssignmentStatus @default(ACCEPTED)
   customerId          String
   customer            User           @relation("CustomerShipments", fields: [customerId], references: [id])
   updates             StatusLog[]
+  locationPings       ShipmentLocationPing[]
+  deliveryProofs       DeliveryProof[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
@@ -81,6 +101,20 @@ model Shipment {
   @@index([customerId])
   @@index([originBranchId])
   @@index([destinationBranchId])
+}
+
+model DeliveryProof {
+  id           String   @id @default(cuid())
+  shipmentId   String
+  shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  storageKey   String   @unique
+  originalName String
+  contentType  String
+  sizeBytes    Int
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+
+  @@index([shipmentId, createdAt])
 }
 
 model StatusLog {
@@ -95,6 +129,22 @@ model StatusLog {
 
   @@index([shipmentId, createdAt])
 }
+
+model ShipmentLocationPing {
+  id             String   @id @default(cuid())
+  shipmentId     String
+  shipment       Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  latitude       Decimal  @db.Decimal(9, 6)
+  longitude      Decimal  @db.Decimal(9, 6)
+  speedMph       Decimal? @db.Decimal(5, 2)
+  headingDegrees Int?
+  recordedAt     DateTime @default(now())
+  source         String   @default("synthetic")
+
+  @@index([shipmentId, recordedAt])
+  @@map("ShipmentLocationPing")
+}
+
 
 model HandoverEvent {
   id           String             @id @default(cuid())
