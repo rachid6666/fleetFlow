@@ -2,7 +2,8 @@ import { Prisma, type AssignmentStatus, type DriverAvailability, type ShipmentSt
 import { randomUUID } from "node:crypto";
 import { assertTransition } from "./shipment-rules";
 import { prisma } from "./prisma";
-import type { Shipment, ShipmentEvent } from "./types";
+import type { AppRole } from "./roles";
+import type { CustomerShipment, Shipment, ShipmentEvent } from "./types";
 
 const shipmentInclude = {
   driver: { select: { id: true, name: true, email: true } },
@@ -69,6 +70,13 @@ export type DriverAvailabilityRecord = {
   email: string;
   availability: DriverAvailability;
 };
+
+export async function getDriverByEmail(email: string): Promise<DriverAvailabilityRecord | null> {
+  return prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" }, role: "DRIVER" },
+    select: { id: true, name: true, email: true, availability: true },
+  });
+}
 
 export async function listDrivers(): Promise<DriverAvailabilityRecord[]> {
   return prisma.user.findMany({
@@ -355,6 +363,55 @@ export async function listShipmentsForDriver(email: string) {
   return records.map(toShipment);
 }
 
+function customerUpdateDescription(status: ShipmentStatus) {
+  if (status === "PENDING") return "Shipment booked";
+  if (status === "DISPATCHED") return "Shipment dispatched";
+  if (status === "IN_TRANSIT") return "Shipment in transit";
+  if (status === "DELIVERED") return "Shipment delivered";
+  return "Shipment requires attention";
+}
+
+const customerShipmentSelect = {
+  id: true,
+  trackingCode: true,
+  origin: true,
+  destination: true,
+  status: true,
+  updatedAt: true,
+  updates: {
+    orderBy: { createdAt: "desc" },
+    select: { status: true, createdAt: true },
+  },
+} satisfies Prisma.ShipmentSelect;
+
+type CustomerShipmentRecord = Prisma.ShipmentGetPayload<{ select: typeof customerShipmentSelect }>;
+
+function toCustomerShipment(record: CustomerShipmentRecord): CustomerShipment {
+  return {
+    id: record.id,
+    trackingCode: record.trackingCode,
+    origin: record.origin,
+    destination: record.destination,
+    status: record.status,
+    eta: formatEta(record.status),
+    updatedAt: formatUpdatedAt(record.updatedAt),
+    events: record.updates.map((event) => ({
+      status: event.status,
+      description: customerUpdateDescription(event.status),
+      createdAt: event.createdAt.toISOString(),
+    })),
+  };
+}
+
+export async function listShipmentsForCustomer(email: string): Promise<CustomerShipment[]> {
+  const records = await prisma.shipment.findMany({
+    where: { customer: { email: { equals: email, mode: "insensitive" } } },
+    select: customerShipmentSelect,
+    orderBy: { updatedAt: "desc" },
+  });
+  return records.map(toCustomerShipment);
+}
+
 export async function getRecentActivity(take = 3) {
   return prisma.statusLog.findMany({
     take,
@@ -469,16 +526,30 @@ export async function getShipmentAlerts(now = new Date()) {
   };
 }
 
-export async function getShipmentByTrackingCode(code: string) {
+export async function getShipmentForActor(
+  code: string,
+  actor: { role: AppRole; email?: string | null },
+) {
+  const where: Prisma.ShipmentWhereInput = {
+    trackingCode: { equals: code.trim(), mode: "insensitive" },
+  };
+
+  if (actor.role !== "ADMIN") {
+    if (!actor.email) return undefined;
+    if (actor.role === "CUSTOMER") {
+      where.customer = { email: { equals: actor.email, mode: "insensitive" } };
+    } else {
+      where.driver = { email: { equals: actor.email, mode: "insensitive" } };
+    }
+  }
+
   const shipment = await prisma.shipment.findFirst({
-    where: { trackingCode: { equals: code.trim(), mode: "insensitive" } },
+    where,
     select: {
-      id: true,
       trackingCode: true,
       origin: true,
       destination: true,
       status: true,
-      updatedAt: true,
       updates: {
         orderBy: { createdAt: "desc" },
         select: { status: true, description: true, createdAt: true },
@@ -490,7 +561,7 @@ export async function getShipmentByTrackingCode(code: string) {
 
   const events: ShipmentEvent[] = shipment.updates.map((event) => ({
     status: event.status,
-    description: event.description,
+    description: actor.role === "CUSTOMER" ? customerUpdateDescription(event.status) : event.description,
     createdAt: event.createdAt.toISOString(),
   }));
 

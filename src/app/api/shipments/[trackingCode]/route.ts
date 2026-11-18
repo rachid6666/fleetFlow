@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "../../../../../auth";
-import { getShipmentByTrackingCode, transitionShipmentStatus } from "@/lib/data";
+import { getShipmentForActor, transitionShipmentStatus } from "@/lib/data";
 import { InvalidShipmentTransitionError } from "@/lib/shipment-rules";
 
 type Context = { params: Promise<{ trackingCode: string }> };
@@ -14,8 +14,15 @@ const updateSchema = z
   .strict();
 
 export async function GET(_: Request, { params }: Context) {
+  const session = await auth();
+  const user = session?.user;
+  if (!user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  if (user.role !== "ADMIN" && !user.email) {
+    return NextResponse.json({ error: "Account email is required" }, { status: 403 });
+  }
+
   const { trackingCode } = await params;
-  const shipment = await getShipmentByTrackingCode(trackingCode);
+  const shipment = await getShipmentForActor(trackingCode, { role: user.role, email: user.email });
   if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
   return NextResponse.json({ data: shipment });
 }

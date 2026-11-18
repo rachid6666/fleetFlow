@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "../../../auth";
+import { workspacePathForRole } from "@/lib/roles";
 import { DeliveryNoteForm } from "@/components/delivery-note-form";
 import { DeliveryProofUpload } from "@/components/delivery-proof-upload";
 import { AssignmentResponseActions } from "@/components/assignment-response-actions";
@@ -7,18 +8,22 @@ import { DriverAvailabilityControl } from "@/components/driver-availability-cont
 import { Sidebar } from "@/components/sidebar";
 import { StatusActions } from "@/components/status-actions";
 import { StatusBadge } from "@/components/status-badge";
-import { listShipmentsForDriver, listDrivers } from "@/lib/data";
+import { getDriverByEmail, listShipmentsForDriver } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function DriverPage() {
   const session = await auth();
-  const email = session?.user?.email;
-  if (!email) redirect("/login?error=driver");
+  if (!session?.user) redirect("/login");
+  if (session.user.role !== "DRIVER") redirect(workspacePathForRole(session.user.role));
+  const email = session.user.email;
+  if (!email) redirect("/login?error=email");
 
-  const [assigned, drivers] = await Promise.all([listShipmentsForDriver(email), listDrivers()]);
-  const driver = drivers.find((item) => item.email.toLowerCase() === email.toLowerCase());
-  const name = session.user.name ?? "Driver";
+  const [assigned, driver] = await Promise.all([
+    listShipmentsForDriver(email),
+    getDriverByEmail(email),
+  ]);
+  const name = driver?.name ?? session.user.name ?? "Driver";
   const firstName = name.split(/\s+/)[0] || "Driver";
   const activeTrips = assigned.filter((shipment) => shipment.status !== "DELIVERED").length;
   const completedTrips = assigned.length - activeTrips;

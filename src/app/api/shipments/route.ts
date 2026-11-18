@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "../../../../auth";
-import { createShipment, listShipments, listShipmentsForDriver } from "@/lib/data";
+import { createShipment, listShipments, listShipmentsForCustomer, listShipmentsForDriver } from "@/lib/data";
 
 const createShipmentSchema = z
   .object({
@@ -23,14 +23,13 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
-  if (user.role !== "ADMIN" && user.role !== "DRIVER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  if (user.role === "DRIVER") {
+  if (user.role === "DRIVER" || user.role === "CUSTOMER") {
     if (!user.email) {
       return NextResponse.json({ error: "Account email is required" }, { status: 403 });
     }
-    const data = await listShipmentsForDriver(user.email);
+    const data = user.role === "DRIVER"
+      ? await listShipmentsForDriver(user.email)
+      : await listShipmentsForCustomer(user.email);
     return NextResponse.json({ data, count: data.length });
   }
   const data = await listShipments();

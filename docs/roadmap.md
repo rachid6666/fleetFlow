@@ -26,7 +26,7 @@
 
 - Admin shipment table, creation form, assignment, reassignment, filters, and metrics.
 - Driver mobile view with assigned shipments and one-tap valid status transitions.
-- Customer tracking route with tracking-code lookup and chronological timeline.
+- Authenticated customer workspace with own-shipment listing and customer-safe timeline.
 - POD note and exception capture with input validation.
 
 **Done when:** each role can complete its core workflow with responsive, accessible UI.
@@ -36,7 +36,7 @@
 - Wrap status changes in Prisma transactions.
 - Add transition tests and authorization tests.
 - Add pagination, search, empty states, loading states, and error handling.
-- Add rate limiting for public tracking lookup and login attempts.
+- Add rate limiting for login attempts and role-scoped shipment API requests.
 - Add structured logging and operational error reporting.
 
 **Done when:** every status change is explainable from database history and the main failure paths are tested.

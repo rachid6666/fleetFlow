@@ -1,61 +1,70 @@
 # FleetFlow access concept
 
-## Four questions
+## Workspace routing
 
-### 1. Who is asking?
+FleetFlow uses the Authentik role claim to route each signed-in user to one workspace:
 
-FleetFlow uses two operational roles for this access concept:
+- **Admin** ? `/admin`
+- **Driver** ? `/driver`
+- **Customer** ? `/customer`
 
-- **Admin** — the operations team. An admin may view every shipment and update any shipment.
-- **Driver** — a limited operational user. A driver may view only shipments assigned to the driver name in the authenticated session and may update only those shipments.
+Visiting another role's workspace redirects the user to their own workspace. Signed-out users are redirected to `/login`. The old `/track` route redirects to the authenticated customer workspace.
 
-Customer tracking is intentionally public and read-only by tracking code. It is not an operational role for the protected shipment list or mutation API.
+## Data scope
 
-### 2. What is being requested?
+### Admin
 
-The request is identified by the HTTP method and route:
+Admins can view every shipment, driver availability, operational analytics, live GPS data, handover records, and the AI operations copilot.
 
-- `GET /api/shipments` requests the operational shipment list.
-- `GET /api/shipments/:trackingCode` requests one public tracking view.
-- `PATCH /api/shipments/:trackingCode` requests a status or delivery-note change.
-- `GET /api/superset/guest-token` requests a short-lived analytics token.
-- `GET /api/health` checks service health.
+### Driver
 
-### 3. Which data is in scope?
+Drivers can view only shipments assigned to the database user whose email matches `session.user.email`. The same ownership rule is applied to status changes, notes, delivery proofs, assignment responses, availability updates, and GPS ingestion. The driver workspace never loads the full driver directory.
 
-The server decides the scope before returning or changing data. Admins receive the full demo shipment list. Drivers receive only records whose `driverName` matches `session.user.name`; this is the demo equivalent of filtering by a future `driverId` foreign key. A tracking-code lookup returns only the requested public shipment record. No client-side filter is treated as an authorization check.
+### Customer
 
-### 4. Which rule decides?
+Customers can view only shipments whose `Shipment.customer` email matches `session.user.email`. Their API response contains tracking code, route, status, ETA, and a customer-safe event timeline. It omits internal notes, driver identities, delivery-proof metadata, proof files, and mutation endpoints.
 
-The route handler calls the server-side access helper in [`src/lib/access.ts`](../src/lib/access.ts). Missing sessions return `401`. Authenticated users without the required role or assignment return `403`. The driver filter and assignment check run in the backend route before data is returned or mutated. Database-backed production code must preserve the same rule in its Prisma `where` clause and update transaction.
+## Backend enforcement
 
-## Endpoint test plan
+Authorization is enforced in the server query, not by a client-side filter:
 
-Replace the placeholder cookies or bearer mechanism with a real authenticated session from the local Authentik setup. Every protected endpoint has an allowed and forbidden case. The examples use quoted URLs as required.
+- Page routes check the role on the server.
+- `src/middleware.ts` redirects users who open another role's workspace.
+- `src/app/admin/layout.tsx` independently verifies the admin role.
+- Driver queries filter by the signed-in driver email.
+- Customer queries filter by the signed-in customer email.
+- The shipment-detail API uses `getShipmentForActor`, which applies the role-specific `where` clause.
+- Mutation APIs reject customers and check assignment ownership for drivers.
 
-| Endpoint | Allowed call and expected status | Forbidden call and expected status |
-| --- | --- | --- |
-| `GET /api/health` | `curl -i "http://localhost:3000/api/health"` → `200` | `curl -i -X POST "http://localhost:3000/api/health"` → `405` (unsupported method) |
-| `GET /api/shipments` | Admin session: `curl -i -b "admin-session-cookie" "http://localhost:3000/api/shipments"` → `200` | No session: `curl -i "http://localhost:3000/api/shipments"` → `401`; customer session → `403` |
-| `GET /api/shipments` limited scope | Driver session for Nadia Benali: `curl -i -b "driver-session-cookie" "http://localhost:3000/api/shipments"` → `200`, with only Nadia's shipments | Driver session for another driver must not receive Nadia's records; expected `200` with those records omitted. A customer session → `403` |
-| `GET /api/shipments/:trackingCode` | Public tracking: `curl -i "http://localhost:3000/api/shipments/FF-2048-AL"` → `200` | Unknown tracking code: `curl -i "http://localhost:3000/api/shipments/DOES-NOT-EXIST"` → `404` |
-| `PATCH /api/shipments/:trackingCode` | Assigned driver or admin: `curl -i -X PATCH -b "driver-session-cookie" -H "Content-Type: application/json" -d "{\"status\":\"IN_TRANSIT\"}" "http://localhost:3000/api/shipments/FF-2049-AL"` → `200` when assigned and transition is valid | Unassigned driver/customer: same call with the other session → `403`; no session → `401` |
-| `GET /api/superset/guest-token` | Authenticated admin or driver: `curl -i -b "admin-session-cookie" "http://localhost:3000/api/superset/guest-token"` → `200` when Superset is configured, otherwise `503` | No session: `curl -i "http://localhost:3000/api/superset/guest-token"` → `401` |
-| `/api/auth/[...nextauth]` | Exercise through the Authentik login flow; callback is environment-dependent | Direct unauthenticated operational API calls must still be rejected; this route itself is the authentication plumbing, so manual login-flow verification is required |
+## Endpoint behavior
 
-## What is open
+| Endpoint | Admin | Driver | Customer |
+|---|---|---|---|
+| `GET /api/shipments` | All shipments | Assigned shipments | Own safe shipment views |
+| `GET /api/shipments/:trackingCode` | Any shipment | Assigned shipment | Own shipment only; otherwise `404` |
+| `PATCH /api/shipments/:trackingCode` | Allowed | Assigned and accepted only | `403` |
+| Notes and delivery proof | Allowed | Assigned and accepted only | `403` |
+| `GET /api/tracking/live` | Allowed | `403` | `403` |
+| `POST /api/tracking/pings` | Allowed | Assigned shipment only | `403` |
+| `POST /api/copilot` | Allowed | `403` | `403` |
+| Superset analytics | Allowed | `403` | `403` |
 
-The API currently uses an in-memory demo store and Authentik session claims. The final production test still needs:
+Missing sessions return `401`. Accessing another account's record returns `404` where exposing its existence would be unnecessary.
 
-1. A seeded admin and two driver accounts in Authentik.
-2. A real browser session cookie for each role.
-3. A Prisma query that filters by ` `, not the demo `driverName` string.
-4. CI coverage for the `401`, `403`, allowed, and cross-driver data-leak cases.
+## Verification
 
-Until those are available, the curl commands above are the executable test draft and the environment-dependent rows are marked by their expected conditional status.
+The production build and TypeScript checks must pass:
 
-## Environment safety
+```powershell
+npm run typecheck
+npm run build
+```
 
-- `.env` and `.env.*` are ignored by Git.
-- `.env.example` is the committed template and contains placeholders only.
-- Never put Authentik secrets, database passwords, session secrets, or Superset service credentials in tracked files.
+Seeded local-data checks confirm:
+
+- the customer sees only shipments linked to `customer@fleetflow.local`;
+- driver one sees only shipments assigned to `driver.one@fleetflow.local`;
+- driver two cannot read the customer's seeded shipment;
+- customer results omit internal notes and driver details;
+- unauthenticated shipment APIs return `401`;
+- `/track` sends signed-out users to `/login`.

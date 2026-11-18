@@ -6,7 +6,7 @@ FleetFlow has three experiences over one shipment domain:
 
 1. **Admin operations** create shipments, manage users, assign drivers, and monitor bottlenecks.
 2. **Driver operations** are optimized for a small screen and fast, deliberate status changes.
-3. **Customer tracking** exposes only the information needed to identify a shipment and follow its timeline.
+3. **Customer workspace** lists only shipments linked to the signed-in customer and exposes a customer-safe tracking timeline.
 
 The shipment is the system of record. `StatusLog` is append-only audit history and must be written in the same database transaction as a shipment status change.
 
@@ -29,7 +29,7 @@ The shipment is the system of record. `StatusLog` is append-only audit history a
 | View assigned shipments | yes | yes | own only |
 | Update shipment status | yes | assigned only | no |
 | Add POD notes | yes | assigned only | no |
-| Public tracking lookup | yes | yes | yes, by tracking code |
+| Tracking lookup | all | assigned only | own only |
 
 ## Status rules
 

@@ -8,7 +8,7 @@ This repository now includes the first runnable product slice plus the implement
 
 - **Admin:** manage users and shipments, assign drivers, reassign work, and monitor operational metrics.
 - **Driver:** use a mobile-first workflow to update status, add proof-of-delivery notes, and record exceptions.
-- **Customer / shipper:** look up a shipment by tracking code and view its event timeline.
+- **Customer / shipper:** view only their own shipments and customer-safe event timelines.
 
 ## Recommended stack
 
@@ -20,7 +20,7 @@ Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, PostgreSQL, Prisma ORM,
 docs/                         Product, architecture, roadmap, and AI prompts
 prisma/schema.prisma          Initial relational data model
 skills/fleetflow-build/       Reusable Codex skill for future FleetFlow work
-src/app/                      Admin, driver, and customer tracking screens
+src/app/                      Admin, driver, and customer workspace screens
 src/lib/                      Prisma data access and domain types
 .env.example                  Required environment variables
 CONTRIBUTING.md               Development and delivery conventions
@@ -28,7 +28,7 @@ CONTRIBUTING.md               Development and delivery conventions
 
 ## Current data model
 
-The application reads shipments from PostgreSQL through Prisma. Shipment status changes are authenticated and persist an audit event in the same transaction. Public tracking responses omit customer, driver, and internal-note fields.
+The application reads shipments from PostgreSQL through Prisma. Sign-in routes users to their role workspace from Authentik group claims. Shipment status changes are authenticated and persist an audit event in the same transaction. Customer responses omit internal notes, driver identities, and delivery-proof data.
 Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. Seven synthetic GPS routes are available through `npm run db:seed:tracking`.
 
 The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. This preserves its source entities and relationships without creating synthetic Auth.js accounts or converting historical loads into mutable FleetFlow shipments.
@@ -50,7 +50,8 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 - `/admin/copilot` — admin-only AI operations copilot grounded in live and historical logistics data
 - `/admin/shipments` — shipment desk with routes, statuses, drivers, customers, and ETAs
 - `/driver` — mobile-oriented assigned shipment workflow with status actions
-- `/track` — customer tracking code lookup and event timeline
+- `/customer` ? authenticated customer workspace containing only the signed-in customer?s shipments
+- `/workspace` ? role-aware post-login redirect for admin, driver, and customer users
 
 Authentication is prepared for Authentik OIDC through Auth.js. See [`docs/authentik.md`](docs/authentik.md) for provider setup and callback URLs.
 
@@ -59,16 +60,40 @@ The admin analytics page at `/admin/analytics` embeds a provisioned 21-chart Sup
 
 ## Start locally with Docker Compose
 
-This is the reproducible fresh-clone path. It starts Next.js, PostgreSQL, and n8n with local-only example values; it does not use Vercel or a hosted database.
+FleetFlow keeps persistent data in Neon. Docker runs the FleetFlow app, n8n, Superset, and Authentik, but it does **not** start a local PostgreSQL container.
+
+1. Create the application database and copy both Neon connection strings into the root `.env`:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   `DATABASE_URL` must use Neon's pooled `-pooler` hostname. `DATABASE_URL_UNPOOLED` must use the direct hostname without `-pooler`; Prisma migrations use this direct connection.
+
+2. Start the FleetFlow application and n8n:
+
+   ```powershell
+   docker compose up --build
+   ```
+
+Authentik uses a separate Neon database and its own ignored environment file:
 
 ```powershell
-Copy-Item .env.example .env
-docker compose up --build
+Copy-Item authentik/.env.example authentik/.env
+docker compose -f authentik/compose.yml up -d
 ```
 
-The app container waits for PostgreSQL and n8n health checks, applies checked-in Prisma migrations, and runs the repeatable seed before starting. Open `http://localhost:3000`, n8n at `http://localhost:5678`, and health at `http://localhost:3000/api/health`. The seeded tracking code is `FF-LOCAL-001`. Stop with `Ctrl+C`; do not use `docker compose down -v`, because the PostgreSQL and n8n named volumes are intentionally persistent.
+Fill in the pooled `PG_HOST`, direct `PG_DIRECT_HOST`, credentials, database name, and Authentik secret before starting it. See [`docs/authentik.md`](docs/authentik.md) for setup and the migration workflow.
 
-For a host-only development loop, keep the Compose PostgreSQL running and use the repository's npm scripts with a host-resolvable `DATABASE_URL`; production Vercel/Neon settings belong in a separate deployment environment, not in `.env.example`.
+The app waits for n8n, applies checked-in Prisma migrations through the direct Neon URL, and runs the repeatable seed before starting. Open `http://localhost:3000`, n8n at `http://localhost:5678`, and health at `http://localhost:3000/api/health`. The seeded tracking code is `FF-LOCAL-001`. The only named app volume is `fleetflow-n8n`; application data lives in Neon.
+
+Host-side Prisma commands use the same root `.env` values:
+
+```powershell
+npm run db:validate
+npm run db:deploy
+npm run db:seed
+```
 
 ## n8n workflows
 
@@ -83,12 +108,10 @@ GitHub cannot see uncommitted local work, so use an explicit `START_TASK` webhoo
 
 Troubleshooting:
 
-- `app` is unhealthy: inspect `docker compose logs app postgres`, confirm `.env` exists, then retry `docker compose up --build`.
-- `P1001` or migration errors: wait for `postgres` to become healthy; never delete the volume automatically. Check `docker compose ps` and `docker compose logs postgres`.
+- `app` is unhealthy: inspect `docker compose logs app`, confirm the root `.env` contains both Neon URLs, then retry `docker compose up --build`.
+- `P1001` or migration errors: verify Neon network access, SSL mode, the pooled hostname in `DATABASE_URL`, and the direct hostname in `DATABASE_URL_UNPOOLED`.
 - n8n callbacks fail: verify both services use the same `N8N_WEBHOOK_SECRET`, use Compose service names internally, and import/activate the workflow.
 - A team notification is skipped: this is expected when `TEAM_NOTIFICATION_WEBHOOK_URL` is blank; local FleetFlow remains usable.
-
-The older hosted-database flow remains available for deployment documentation, but it is not required for a fresh local clone.
 
 To load the MIT-licensed [Kaggle Logistics Operations Database](https://www.kaggle.com/datasets/yogape/logistics-operations-database), download it with `kagglehub.dataset_download("yogape/logistics-operations-database")`, then run:
 
@@ -98,7 +121,7 @@ npm run db:import:kaggle -- --source "C:\path\to\logistics-operations-database"
 
 The importer maps all 14 CSV files into typed relational tables (`customers`, `drivers`, `loads`, `trips`, `delivery_events`, and related tables), with primary keys and foreign-key relations matching the dataset schema. It imports parent tables before dependent records, preserves optional foreign keys as nullable relations, and skips existing keys when re-run. The admin overview fetches logistics metrics and recent joined loads directly from Neon. Use `npm run db:verify:kaggle` to check imported row totals and relational constraints.
 
-Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection, `/api/shipments` requires an admin or driver session, and `/api/shipments/:trackingCode` provides public tracking fields while requiring an admin or assigned-driver session for status changes.
+Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection. `/api/shipments` requires a session and returns all shipments for admins, assigned shipments for drivers, and customer-safe shipments for customers. `/api/shipments/:trackingCode` requires a session and enforces role ownership.
 
 The admin overview flags shipments marked `EXCEPTION` and shipments still `IN_TRANSIT` with no update for at least 24 hours. The stale-update threshold is a monitoring signal, not an ETA-based late-delivery prediction; live shipments do not currently store an ETA.
 
@@ -111,9 +134,9 @@ Never commit `.env`, database credentials, session secrets, or uploaded proof-of
 ### Services and ports
 
 - **FleetFlow web/API:** `3000` by default. Next.js serves the UI and `/api/*` routes from the same process.
-- **PostgreSQL:** `5432`, with persistent named volume `fleetflow-postgres`.
+- **PostgreSQL:** Neon-managed; no local database container. FleetFlow uses `fleet`; Authentik uses the separate `authentik` database.
 - **n8n:** `5678`, with persistent named volume `fleetflow-n8n`.
-- **Authentik:** external OIDC provider; use the issuer configured by `AUTHENTIK_ISSUER`.
+- **Authentik:** server and worker use the separate Neon `authentik` database; use the issuer configured by `AUTHENTIK_ISSUER`.
 - **Apache Superset:** `8088` only when the embedded analytics map is enabled.
 
 ### Start commands
@@ -121,6 +144,7 @@ Never commit `.env`, database credentials, session secrets, or uploaded proof-of
 ```powershell
 Copy-Item .env.example .env
 docker compose up --build
+docker compose -f authentik/compose.yml up -d
 ```
 
 Optional host-side Prisma commands (when `DATABASE_URL` points to a host-resolvable database):

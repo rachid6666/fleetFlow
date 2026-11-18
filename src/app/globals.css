@@ -392,3 +392,12 @@ h1 { margin: 6px 0 7px; font-size: 32px; letter-spacing: -0.04em; }
 @media (max-width: 620px) { .tracking-kpis { grid-template-columns: repeat(2, 1fr); } .tracking-selection { grid-template-columns: 1fr; } .tracking-selection-stats { flex-wrap: wrap; gap: 12px; } .copilot-input { grid-template-columns: 1fr; } .copilot-message { max-width: 96%; } }
 .copilot-db-status { display: inline-flex; margin: -5px 0 10px; padding: 5px 8px; border-radius: 999px; background: #e7f6ef; color: #13765a; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .copilot-db-status.is-offline { background: #fff1df; color: #9a5d16; }
+.customer-main { max-width: 1180px; }
+.customer-shipment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
+.customer-shipment-card { margin: 0; }
+.customer-shipment-card .panel-heading { align-items: flex-start; }
+.customer-shipment-card .panel-heading h2 { margin-top: 5px; font-size: 17px; }
+.customer-shipment-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.customer-shipment-summary span { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 12px; }
+.customer-shipment-summary strong { color: var(--ink); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+@media (max-width: 620px) { .customer-shipment-grid { grid-template-columns: 1fr; } .customer-shipment-summary { grid-template-columns: 1fr; } }

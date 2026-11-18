@@ -44,6 +44,11 @@ export type TrackedShipment = Pick<
   events: ShipmentEvent[];
 };
 
+export type CustomerShipment = TrackedShipment & {
+  id: string;
+  updatedAt: string;
+};
+
 export const statusLabels: Record<ShipmentStatus, string> = {
   PENDING: "Pending",
   DISPATCHED: "Dispatched",

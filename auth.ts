@@ -22,6 +22,9 @@ function roleFromGroups(groups: string[] = []) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  pages: {
+    error: "/login",
+  },
   providers: [
     {
       id: "authentik",

@@ -1,19 +1,25 @@
-﻿# FleetFlow Superset analytics
+# FleetFlow Superset analytics
 
 Open `/admin/analytics` while signed in as a FleetFlow admin. The dashboard has 21 charts for revenue, routes, customers, fuel efficiency, delivery events, costs, safety, utilization, live shipment alerts and a facility network map. The Overview map uses the 50 geocoded facilities in `facilities`, colored by the FleetFlow teal palette and positioned from `latitude` and `longitude`.
 
 ## Run locally
 
-Prerequisites: Docker Desktop and the FleetFlow PostgreSQL database, migrated and populated. For the Compose app, start PostgreSQL first so Superset can reach it on the shared `fleetflow` network.
+Prerequisites: Docker Desktop, a root `.env` with the Neon `DATABASE_URL` and `DATABASE_URL_UNPOOLED` values, and the FleetFlow `fleet` database migrated and populated. Superset reaches Neon directly through the shared `fleetflow` Docker network; no local PostgreSQL service is involved.
 
 ```powershell
-docker compose up -d postgres
+docker compose up -d --build
 npm run superset:setup
 npm run superset:up
-docker compose up -d --build app
 ```
 
-Setup uses the local Compose PostgreSQL settings from `.env`. Set `SUPERSET_DATABASE_URL` before setup to use a dedicated read-only account instead. The generated embed credentials are written to ignored `superset/.env` and `.env.local`; Docker loads `.env.local` into the app container. The app calls Superset at `http://superset:8088`, and the browser embeds it from http://localhost:8088. Direct dashboard: http://localhost:8088/superset/dashboard/fleetflow-operations/.
+Setup uses `DATABASE_URL_UNPOOLED` from the root `.env` so analytics sessions can use temporary tables. Set `SUPERSET_DATABASE_URL` before setup to use a dedicated read-only Neon account instead. The generated embed credentials are written to ignored `superset/.env` and `.env.local`; Docker loads `.env.local` into the app container. The app calls Superset at `http://superset:8088`, and the browser embeds it from http://localhost:8088. Direct dashboard: http://localhost:8088/superset/dashboard/fleetflow-operations/.
+
+If FleetFlow shows “Analytics is temporarily unavailable”, first confirm the app and Superset share the `fleetflow` network. Recreate Superset after the root stack is running so it reattaches with the `superset` DNS alias:
+
+```powershell
+docker compose -f superset/compose.yml up -d --force-recreate
+docker compose -f superset/compose.yml exec -T -e VERIFY_GUEST_ONLY=1 superset python /app/fleetflow/verify.py
+```
 
 For a host-run Next.js process, start it with `npm run dev` after setup; it uses `http://localhost:8088` for both server requests and browser embeds.
 

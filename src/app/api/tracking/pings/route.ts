@@ -19,6 +19,9 @@ export async function POST(request: Request) {
   if (session.user.role !== "ADMIN" && session.user.role !== "DRIVER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  if (session.user.role === "DRIVER" && !session.user.email) {
+    return NextResponse.json({ error: "Account email is required" }, { status: 403 });
+  }
 
   const parsed = pingSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid GPS ping", details: parsed.error.flatten() }, { status: 400 });

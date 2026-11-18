@@ -35,7 +35,7 @@ Validation rules:
 - `from_driver_id` must equal the shipment's current `Shipment.driverId`.
 - The integration endpoint requires `N8N_WEBHOOK_SECRET`; the direct endpoint additionally requires an Auth.js session. Admins may hand over any shipment; Drivers may hand over only their assigned shipment.
 
-`event_id` is the idempotency key and is unique in `HandoverEvent.eventId`. A repeat returns the existing result and does not update `Shipment` or add another `StatusLog`. A valid first event updates `Shipment.driverId` and creates a `StatusLog` in one Prisma transaction. The log keeps the current `Shipment.status` and describes the driver handover, so the status timeline remains auditable without inventing a status transition. Rejected events are retained in `HandoverEvent` with `status=REJECTED` and `errorReason`.
+`event_id` is the idempotency key and is unique in `HandoverEvent.eventId`. A repeat returns the existing result and does not update `Shipment` or add another `StatusLog`. A valid first event updates `Shipment.driverId`, sets `Shipment.assignmentStatus=PENDING`, and creates a `StatusLog` in one Prisma transaction. The log keeps the current `Shipment.status` and describes the driver handover, so the status timeline remains auditable without inventing a status transition. The receiving driver must accept the reassignment before changing shipment status, adding notes, or uploading delivery proof. Rejected events are retained in `HandoverEvent` with `status=REJECTED` and `errorReason`.
 
 Data access: Admins can access all shipment and handover data through the existing admin routes. Drivers can access their own assignments and can act only on an assigned shipment. Customers remain excluded from mutation endpoints. Public `GET /api/shipments/:trackingCode` exposes tracking-safe fields and `StatusLog` timeline entries, not driver IDs or internal handover fields.
 
@@ -66,4 +66,4 @@ GitHub sends the push or pull-request body and `x-github-event`; the workflow no
 
 Import `workflows/fleetflow-handover.json` and `workflows/fleetflow-team-activity.json` from the n8n UI (`Workflows` → `Import from File`). In the local n8n container, set `FLEETFLOW_API_URL=http://app:3000`, `N8N_WEBHOOK_SECRET` to the matching local `.env` value, and optionally `TEAM_NOTIFICATION_WEBHOOK_URL`. These are n8n environment variables, not embedded workflow credentials. Do not paste secrets into exported JSON or commit n8n's `.n8n` data volume.
 
-Use each workflow's Test URL while testing and Production URL after activation. The Compose service names are `app`, `postgres`, and `n8n`; `localhost` is for the host browser only.
+Use each workflow's Test URL while testing and Production URL after activation. The Compose service names are `app` and `n8n`; PostgreSQL is the external Neon database, and `localhost` is for the host browser only.

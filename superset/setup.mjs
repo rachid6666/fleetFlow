@@ -5,13 +5,9 @@ import { randomBytes } from "node:crypto";
 const env = { ...parseEnv(fs.readFileSync('.env', 'utf8')), ...process.env };
 function sourceDatabaseUrl() {
   if (env.SUPERSET_DATABASE_URL) return env.SUPERSET_DATABASE_URL;
-  const url = new URL('postgresql://postgres');
-  url.username = env.POSTGRES_USER || 'fleetflow';
-  url.password = env.POSTGRES_PASSWORD || 'fleetflow-local-password';
-  url.hostname = 'postgres';
-  url.port = '5432';
-  url.pathname = `/${env.POSTGRES_DB || 'fleetflow'}`;
-  return url.toString();
+  if (env.DATABASE_URL_UNPOOLED) return env.DATABASE_URL_UNPOOLED;
+  if (env.DATABASE_URL) return env.DATABASE_URL;
+  throw new Error('Set DATABASE_URL_UNPOOLED or DATABASE_URL to the FleetFlow Neon database.');
 }
 const sourceUrl = sourceDatabaseUrl();
 const path = 'superset/.env';
