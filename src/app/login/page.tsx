@@ -1,10 +1,6 @@
-import { redirect } from "next/navigation";
-import { auth, signIn } from "../../../auth";
+import { signIn } from "../../../auth";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const session = await auth();
-  if (session?.user) redirect("/workspace");
-
   return (
     <main className="main simple-page" style={{ margin: "0 auto", minHeight: "100vh", display: "grid", placeItems: "center" }}>
       <section className="panel" style={{ width: "100%", maxWidth: 560 }}>

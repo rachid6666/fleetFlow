@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth, signOut } from "../../auth";
+import { auth } from "../../auth";
 import { SidebarNavigation } from "./sidebar-navigation";
 import { workspaceLabelForRole } from "@/lib/roles";
 
@@ -16,12 +16,9 @@ export async function Sidebar() {
       <div className="workspace-label">{role ? workspaceLabelForRole(role) : "FLEETFLOW ACCESS"}</div>
       <SidebarNavigation role={role} />
       {session?.user ? (
-        <form className="sidebar-logout" action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}>
-          <button className="logout-button" type="submit">Sign out</button>
-        </form>
+        <a className="sidebar-logout" href="/api/auth/logout">
+          <span className="logout-button">Sign out</span>
+        </a>
       ) : null}
       <div className="sidebar-footer">
         <span className="online-dot" /> System operational

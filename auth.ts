@@ -37,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ...(process.env.AUTHENTIK_AUTHORIZATION_URL
           ? { url: process.env.AUTHENTIK_AUTHORIZATION_URL }
           : {}),
-        params: { scope: "openid email profile groups" },
+        params: { scope: "openid email profile groups", prompt: "login" },
       },
       profile(profile: AuthentikProfile) {
         return {
