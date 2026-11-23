@@ -57,6 +57,7 @@ The OIDC authorization request includes `openid`, `email`, `profile`, and `group
 |---|---|---|---|---|
 | `GET` | `/api/shipments` | Authenticated | None | `200` with `{ data, count }` |
 | `POST` | `/api/shipments` | Admin | JSON shipment details | `201` with `{ data }` |
+| `GET` | `/api/shipments/form-options` | Admin | None | `200` with U.S. facilities and synchronized Authentik drivers/customers |
 
 `GET /api/shipments` returns all shipments for admins, assigned shipments for drivers, and owned shipments for customers.
 
@@ -64,15 +65,15 @@ Example `POST` body:
 
 ```json
 {
-  "originBranchId": "branch-id",
-  "destinationBranchId": "branch-id",
+  "originFacilityId": "FAC00015",
+  "destinationFacilityId": "FAC00046",
   "customerId": "customer-id",
   "driverId": "driver-id",
   "notes": "Handle with care"
 }
 ```
 
-`originBranchId` and `destinationBranchId` must be different. Notes are limited to 2,000 characters.
+`originFacilityId` and `destinationFacilityId` must reference different U.S. facilities from Neon. Customer and driver IDs reference the synchronized Authentik identity projections. Notes are limited to 2,000 characters.
 
 ### Individual shipment
 

@@ -37,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ...(process.env.AUTHENTIK_AUTHORIZATION_URL
           ? { url: process.env.AUTHENTIK_AUTHORIZATION_URL }
           : {}),
-        params: { scope: "openid email profile groups", prompt: "login" },
+        params: { scope: "openid email profile groups" },
       },
       profile(profile: AuthentikProfile) {
         return {
@@ -56,6 +56,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = roleFromGroups(authentikProfile.groups);
       }
       return token;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return url === "/" || url === "/login" ? `${baseUrl}/workspace` : `${baseUrl}${url}`;
+      }
+
+      try {
+        const target = new URL(url);
+        if (target.origin !== baseUrl) return `${baseUrl}/workspace`;
+        return target.pathname === "/" || target.pathname === "/login"
+          ? `${baseUrl}/workspace`
+          : target.toString();
+      } catch {
+        return `${baseUrl}/workspace`;
+      }
     },
     async session({ session, token }) {
       if (session.user) {

@@ -29,7 +29,7 @@ CONTRIBUTING.md               Development and delivery conventions
 ## Current data model
 
 The application reads shipments from PostgreSQL through Prisma. Sign-in routes users to their role workspace from Authentik group claims. Shipment status changes are authenticated and persist an audit event in the same transaction. Customer responses omit internal notes, driver identities, and delivery-proof data.
-Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. Seven synthetic GPS routes are available through `npm run db:seed:tracking`.
+Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. Development demo shipments are not seeded. Shipment locations come from the U.S. `facilities` table in Neon, and active drivers/customers are synchronized from the separate Authentik database.
 
 The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. This preserves its source entities and relationships without creating synthetic Auth.js accounts or converting historical loads into mutable FleetFlow shipments.
 
@@ -43,7 +43,7 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 - [`docs/ai-prompts.md`](docs/ai-prompts.md) — prompts for building the major slices with coding agents
 - [`docs/blueprint.md`](docs/blueprint.md) — source blueprint captured from the original project plan
 - [`docs/data-and-database.md`](docs/data-and-database.md) — what reads from Neon, Kaggle table relationships, and database setup/import
-- [`docs/live-tracking-and-copilot.md`](docs/live-tracking-and-copilot.md) — synthetic GPS routes, telemetry API, and admin AI copilot
+- [`docs/live-tracking-and-copilot.md`](docs/live-tracking-and-copilot.md) — stored GPS telemetry, telemetry API, and admin AI copilot
 - [`skills/fleetflow-build/SKILL.md`](skills/fleetflow-build/SKILL.md) — reusable Codex skill
 
 ## Product screens
@@ -87,7 +87,7 @@ docker compose -f authentik/compose.yml up -d
 
 Fill in the pooled `PG_HOST`, direct `PG_DIRECT_HOST`, credentials, database name, and Authentik secret before starting it. See [`docs/authentik.md`](docs/authentik.md) for setup and the migration workflow.
 
-The app waits for n8n, applies checked-in Prisma migrations through the direct Neon URL, and runs the repeatable seed before starting. Open `http://localhost:3000`, n8n at `http://localhost:5678`, and health at `http://localhost:3000/api/health`. The seeded tracking code is `FF-LOCAL-001`. The only named app volume is `fleetflow-n8n`; application data lives in Neon.
+The app waits for n8n, applies checked-in Prisma migrations through the direct Neon URL, and syncs active Authentik driver/customer identities before starting. Open `http://localhost:3000`, n8n at `http://localhost:5678`, and health at `http://localhost:3000/api/health`. The only named app volume is `fleetflow-n8n`; application data lives in Neon.
 
 Host-side Prisma commands use the same root `.env` values:
 

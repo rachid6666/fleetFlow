@@ -86,6 +86,13 @@ AUTHENTIK_ID=<client-id>
 AUTHENTIK_SECRET=<client-secret>
 AUTHENTIK_ADMIN_GROUP=FleetFlow Admins
 AUTHENTIK_DRIVER_GROUP=FleetFlow Drivers
+AUTHENTIK_CUSTOMER_GROUP=FleetFlow Customers
+AUTHENTIK_DB_HOST=<pooled-authentik-host>
+AUTHENTIK_DB_PORT=5432
+AUTHENTIK_DB_NAME=authentik
+AUTHENTIK_DB_USER=<database-user>
+AUTHENTIK_DB_PASSWORD=<database-password>
+AUTHENTIK_DB_SSLMODE=require
 ```
 
 The issuer must be the Authentik application/provider issuer. Authentik’s default per-provider issuer follows `/application/o/<application_slug>/` and exposes OIDC discovery from that issuer. Requesting `openid email profile groups` lets FleetFlow map the Authentik group claim to its application roles.
@@ -105,4 +112,4 @@ After sign-in, `/workspace` redirects `ADMIN` to `/admin`, `DRIVER` to `/driver`
 - Use HTTPS for the deployed callback URL.
 - Keep `AUTHENTIK_SECRET` and `AUTH_SECRET` outside Git.
 - Confirm the Authentik proxy/firewall allows server-to-server access to the discovery and JWKS endpoints.
-- The current role is derived from the OIDC group claim at sign-in. Authentik users are not currently synchronized into FleetFlow's Prisma `User` table; add a sign-in callback or provisioning service if application-level user records are required.
+- Active members of the FleetFlow Drivers and FleetFlow Customers groups are synchronized into FleetFlow's Prisma `User` table as identity projections. The synchronization runs when shipment form options are requested and through `npm run db:seed`; shipment relations still use FleetFlow's local user IDs while names, emails, and roles come from Authentik.

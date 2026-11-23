@@ -5,15 +5,15 @@ import { createShipment, listShipments, listShipmentsForCustomer, listShipmentsF
 
 const createShipmentSchema = z
   .object({
-    originBranchId: z.string().trim().min(1),
-    destinationBranchId: z.string().trim().min(1),
+    originFacilityId: z.string().trim().min(1),
+    destinationFacilityId: z.string().trim().min(1),
     customerId: z.string().trim().min(1),
     driverId: z.string().trim().min(1).nullable().optional(),
     notes: z.string().trim().max(2_000).optional(),
   })
   .strict()
-  .refine((input) => input.originBranchId !== input.destinationBranchId, {
-    message: "Origin and destination must be different branches",
+  .refine((input) => input.originFacilityId !== input.destinationFacilityId, {
+    message: "Origin and destination must be different storage locations",
   });
 
 export async function GET() {

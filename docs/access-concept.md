@@ -67,11 +67,11 @@ npm run typecheck
 npm run build
 ```
 
-Seeded local-data checks confirm:
+Identity and access checks confirm:
 
-- the customer sees only shipments linked to `customer@fleetflow.local`;
-- driver one sees only shipments assigned to `driver.one@fleetflow.local`;
-- driver two cannot read the customer's seeded shipment;
+- the shipment form receives only active members of the Authentik Drivers and Customers groups;
+- customer queries are filtered by the signed-in Authentik email;
+- driver queries are filtered by the assigned synchronized identity;
 - customer results omit internal notes and driver details;
 - unauthenticated shipment APIs return `401`;
 - `/track` sends signed-out users to `/login`.

@@ -1,0 +1,2028 @@
+{
+  "exportedAt": "2026-11-23T16:33:19.428Z",
+  "users": [
+    {
+      "id": "local-driver-one",
+      "email": "driver.one@fleetflow.local",
+      "name": "Driver One",
+      "role": "DRIVER",
+      "availability": "UNAVAILABLE",
+      "createdAt": "2026-11-16T19:40:19.489Z",
+      "updatedAt": "2026-11-23T16:08:46.089Z"
+    },
+    {
+      "id": "local-driver-two",
+      "email": "driver.two@fleetflow.local",
+      "name": "Driver Two",
+      "role": "DRIVER",
+      "availability": "AVAILABLE",
+      "createdAt": "2026-11-16T19:40:19.649Z",
+      "updatedAt": "2026-11-23T16:08:46.217Z"
+    },
+    {
+      "id": "local-driver-collins-2",
+      "email": "collins.ortese.driver@fleetflow.local",
+      "name": "Collins Ortese",
+      "role": "DRIVER",
+      "availability": "AVAILABLE",
+      "createdAt": "2026-11-18T17:33:58.103Z",
+      "updatedAt": "2026-11-23T16:30:18.823Z"
+    },
+    {
+      "id": "cmws0k2ra0000mgegok6wb3qe",
+      "email": "collins.ortese.customer@fleetflow.local",
+      "name": "Collins Ortese",
+      "role": "CUSTOMER",
+      "availability": "AVAILABLE",
+      "createdAt": "2026-11-22T15:50:34.486Z",
+      "updatedAt": "2026-11-23T16:30:18.823Z"
+    },
+    {
+      "id": "local-customer",
+      "email": "customer@fleetflow.local",
+      "name": "FleetFlow Customer",
+      "role": "CUSTOMER",
+      "availability": "AVAILABLE",
+      "createdAt": "2026-11-16T19:40:19.793Z",
+      "updatedAt": "2026-11-23T16:30:18.823Z"
+    }
+  ],
+  "branches": [
+    {
+      "id": "cmwjo4epl0005no3bxy5ort1s",
+      "code": "NGA",
+      "name": "Abuja",
+      "city": "Abuja FCT",
+      "country": "Nigeria",
+      "region": "West Africa",
+      "latitude": "34.4696",
+      "longitude": "-4.8762",
+      "isActive": true,
+      "createdAt": "2026-11-18T00:00:00.000Z",
+      "updatedAt": "2026-11-18T22:51:25.580Z"
+    },
+    {
+      "id": "cmwjo4ede0121no4rtipw3eh",
+      "code": "KUF",
+      "name": "Kufstein Bannhof ",
+      "city": "Kufstein ",
+      "country": "Austria",
+      "region": "Europe",
+      "latitude": "31.4534",
+      "longitude": "7.2393",
+      "isActive": true,
+      "createdAt": "2026-11-19T18:00:44.000Z",
+      "updatedAt": "2026-11-18T23:28:59.052Z"
+    },
+    {
+      "id": "cmwjo4ed90000no3bk2rnz7wf",
+      "code": "ALG",
+      "name": "Algiers Hub",
+      "city": "Algiers",
+      "country": "Algeria",
+      "region": "North Africa",
+      "latitude": "36.7538",
+      "longitude": "3.0588",
+      "isActive": true,
+      "createdAt": "2026-11-16T19:40:18.237Z",
+      "updatedAt": "2026-11-23T16:08:45.057Z"
+    },
+    {
+      "id": "cmwjo4elk0001no3bripp5glq",
+      "code": "ORN",
+      "name": "Oran Gateway",
+      "city": "Oran",
+      "country": "Algeria",
+      "region": "North Africa",
+      "latitude": "35.6971",
+      "longitude": "-0.6308",
+      "isActive": true,
+      "createdAt": "2026-11-16T19:40:18.536Z",
+      "updatedAt": "2026-11-23T16:08:45.322Z"
+    },
+    {
+      "id": "cmwjo4epl0002no3boyeqpchk",
+      "code": "TUN",
+      "name": "Tunis Partner Hub",
+      "city": "Tunis",
+      "country": "Tunisia",
+      "region": "North Africa",
+      "latitude": "36.8065",
+      "longitude": "10.1815",
+      "isActive": true,
+      "createdAt": "2026-11-16T19:40:18.681Z",
+      "updatedAt": "2026-11-23T16:08:45.449Z"
+    },
+    {
+      "id": "cmwjo4etl0003no3bstb66kx2",
+      "code": "CAS",
+      "name": "Casablanca Gateway",
+      "city": "Casablanca",
+      "country": "Morocco",
+      "region": "North Africa",
+      "latitude": "33.5731",
+      "longitude": "-7.5898",
+      "isActive": true,
+      "createdAt": "2026-11-16T19:40:18.826Z",
+      "updatedAt": "2026-11-23T16:08:45.578Z"
+    },
+    {
+      "id": "cmwjo4exn0004no3bwh3ttj1g",
+      "code": "MAD",
+      "name": "Madrid Relay",
+      "city": "Madrid",
+      "country": "Spain",
+      "region": "Europe",
+      "latitude": "40.4168",
+      "longitude": "-3.7038",
+      "isActive": true,
+      "createdAt": "2026-11-16T19:40:18.972Z",
+      "updatedAt": "2026-11-23T16:08:45.706Z"
+    }
+  ],
+  "shipments": [
+    {
+      "id": "cmwmsow1d0001oz4lerciq9bp",
+      "trackingCode": "FF-20261119-48ED3236",
+      "origin": "Kufstein ",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Abuja FCT",
+      "originBranchId": "cmwjo4ede0121no4rtipw3eh",
+      "destinationBranchId": "cmwjo4epl0005no3bxy5ort1s",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "DELIVERED",
+      "notes": "Handle the delivery of the parcel with extreme care as it is a fragile product",
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "cmws0k2ra0000mgegok6wb3qe",
+      "createdAt": "2026-11-19T00:11:31.249Z",
+      "updatedAt": "2026-11-22T16:20:46.392Z",
+      "updates": [
+        {
+          "id": "cmwmsox1f0003oz4lamqgzyc8",
+          "shipmentId": "cmwmsow1d0001oz4lerciq9bp",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Kufstein  to Abuja FCT",
+          "createdAt": "2026-11-19T00:11:32.547Z"
+        },
+        {
+          "id": "cmwrys10n0003mg4n2nazsyck",
+          "shipmentId": "cmwmsow1d0001oz4lerciq9bp",
+          "status": "PENDING",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Driver accepted the shipment assignment",
+          "createdAt": "2026-11-22T15:00:46.247Z"
+        },
+        {
+          "id": "cmwryss8j0009mg4nff5orgy1",
+          "shipmentId": "cmwmsow1d0001oz4lerciq9bp",
+          "status": "DISPATCHED",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to DISPATCHED",
+          "createdAt": "2026-11-22T15:01:21.523Z"
+        },
+        {
+          "id": "cmwryu4ca000dmg4n1ilzr9be",
+          "shipmentId": "cmwmsow1d0001oz4lerciq9bp",
+          "status": "IN_TRANSIT",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to IN_TRANSIT",
+          "createdAt": "2026-11-22T15:02:23.866Z"
+        },
+        {
+          "id": "cmwryvi58000fmg4nh5q1gea2",
+          "shipmentId": "cmwmsow1d0001oz4lerciq9bp",
+          "status": "DELIVERED",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to DELIVERED",
+          "createdAt": "2026-11-22T15:03:28.413Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmws22ygi0001pj4pdu21qhkv",
+      "trackingCode": "FF-20261122-5073907C",
+      "origin": "Kufstein ",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Abuja FCT",
+      "originBranchId": "cmwjo4ede0121no4rtipw3eh",
+      "destinationBranchId": "cmwjo4epl0005no3bxy5ort1s",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "PENDING",
+      "notes": "deliver as soon as possible",
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "PENDING",
+      "customerId": "cmws0k2ra0000mgegok6wb3qe",
+      "createdAt": "2026-11-22T16:33:14.995Z",
+      "updatedAt": "2026-11-22T16:33:14.995Z",
+      "updates": [
+        {
+          "id": "cmws22zfz0003pj4pop3fskcu",
+          "shipmentId": "cmws22ygi0001pj4pdu21qhkv",
+          "status": "PENDING",
+          "actorEmail": "collinzaondona@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Kufstein  to Abuja FCT",
+          "createdAt": "2026-11-22T16:33:16.272Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-001",
+      "trackingCode": "FF-LIVE-0001",
+      "origin": "Dallas",
+      "originLatitude": "32.7767",
+      "originLongitude": "-96.797",
+      "destinationLatitude": "33.749",
+      "destinationLongitude": "-84.388",
+      "estimatedArrival": "2026-11-23T16:16:29.975Z",
+      "destination": "Atlanta",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "IN_TRANSIT",
+      "notes": "Synthetic live route crossing the Southeast corridor.",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:29.981Z",
+      "updatedAt": "2026-11-23T14:21:29.981Z",
+      "updates": [
+        {
+          "id": "cmwtctdyv00015ij4pu4q4mmr",
+          "shipmentId": "synthetic-live-001",
+          "status": "IN_TRANSIT",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:30.486Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtctecs00025ij4gfaoq2q6",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.192663",
+          "longitude": "-92.128069",
+          "speedMph": "42",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00035ij4u4erpdgs",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.21077",
+          "longitude": "-91.910035",
+          "speedMph": "45",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00045ij43jivbpbi",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.228731",
+          "longitude": "-91.691855",
+          "speedMph": "48",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00055ij4z30t4h9x",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.246543",
+          "longitude": "-91.473527",
+          "speedMph": "51",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00065ij4b8ku0u3y",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.264206",
+          "longitude": "-91.255049",
+          "speedMph": "54",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00075ij4ous4p41t",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.281716",
+          "longitude": "-91.036419",
+          "speedMph": "57",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00085ij4xkj3nk8x",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.299074",
+          "longitude": "-90.817637",
+          "speedMph": "60",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs00095ij4hso850c1",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.316279",
+          "longitude": "-90.5987",
+          "speedMph": "63",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs000a5ij47id4s819",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.333329",
+          "longitude": "-90.379611",
+          "speedMph": "66",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs000b5ij4910xuttc",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.350227",
+          "longitude": "-90.160367",
+          "speedMph": "44",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctecs000c5ij4lh0gbtxd",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.366972",
+          "longitude": "-89.940972",
+          "speedMph": "47",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000d5ij4p9tyz8i9",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.383565",
+          "longitude": "-89.721425",
+          "speedMph": "50",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000e5ij4xu0ti63u",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.400009",
+          "longitude": "-89.501728",
+          "speedMph": "53",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000f5ij4fjenu0tu",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.416306",
+          "longitude": "-89.281885",
+          "speedMph": "56",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000g5ij4dd5crro7",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.432459",
+          "longitude": "-89.061896",
+          "speedMph": "59",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000h5ij46jryltmg",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.448469",
+          "longitude": "-88.841766",
+          "speedMph": "62",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000i5ij4n9nqqr60",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.464342",
+          "longitude": "-88.621498",
+          "speedMph": "65",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctect000j5ij4r11eeukp",
+          "shipmentId": "synthetic-live-001",
+          "latitude": "33.48008",
+          "longitude": "-88.401096",
+          "speedMph": "43",
+          "headingDegrees": 86,
+          "recordedAt": "2026-11-23T14:19:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-002",
+      "trackingCode": "FF-LIVE-0002",
+      "origin": "Chicago",
+      "originLatitude": "41.8781",
+      "originLongitude": "-87.6298",
+      "destinationLatitude": "39.7392",
+      "destinationLongitude": "-104.9903",
+      "estimatedArrival": "2026-11-23T17:32:29.975Z",
+      "destination": "Denver",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "IN_TRANSIT",
+      "notes": "Synthetic live route through the central freight corridor.",
+      "driverId": "local-driver-two",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:31.488Z",
+      "updatedAt": "2026-11-23T14:21:31.488Z",
+      "updates": [
+        {
+          "id": "cmwtctexm000l5ij4zxyjpg7y",
+          "shipmentId": "synthetic-live-002",
+          "status": "IN_TRANSIT",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:31.739Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtctf4j000m5ij4ltkenw3w",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.539939",
+          "longitude": "-90.606537",
+          "speedMph": "49",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000n5ij4rtk9ul02",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.504539",
+          "longitude": "-90.915244",
+          "speedMph": "52",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000o5ij4mjsvz647",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.469054",
+          "longitude": "-91.223866",
+          "speedMph": "55",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000p5ij4r4djach9",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.433477",
+          "longitude": "-91.532396",
+          "speedMph": "58",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000q5ij4ly2suku5",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.3978",
+          "longitude": "-91.840827",
+          "speedMph": "61",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000r5ij4qllvvky4",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.362019",
+          "longitude": "-92.149152",
+          "speedMph": "64",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000s5ij4b417e5xo",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.326125",
+          "longitude": "-92.457366",
+          "speedMph": "42",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000t5ij40ku89o0z",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.290115",
+          "longitude": "-92.765462",
+          "speedMph": "45",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000u5ij4vom2e709",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.253982",
+          "longitude": "-93.073437",
+          "speedMph": "48",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000v5ij49tybdrpg",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.217722",
+          "longitude": "-93.381284",
+          "speedMph": "51",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000w5ij462o2vp23",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.18133",
+          "longitude": "-93.688999",
+          "speedMph": "54",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000x5ij4k7jlo3np",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.144802",
+          "longitude": "-93.996577",
+          "speedMph": "57",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000y5ij42g8potj1",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.108134",
+          "longitude": "-94.304016",
+          "speedMph": "60",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k000z5ij4a7kto4oz",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.071322",
+          "longitude": "-94.611312",
+          "speedMph": "63",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k00105ij4a7iujwrn",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "41.034365",
+          "longitude": "-94.918462",
+          "speedMph": "66",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k00115ij4ijm3ns02",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "40.997259",
+          "longitude": "-95.225463",
+          "speedMph": "44",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k00125ij4kc3byy17",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "40.960003",
+          "longitude": "-95.532314",
+          "speedMph": "47",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctf4k00135ij4cmms90bn",
+          "shipmentId": "synthetic-live-002",
+          "latitude": "40.922595",
+          "longitude": "-95.839013",
+          "speedMph": "50",
+          "headingDegrees": 263,
+          "recordedAt": "2026-11-23T14:19:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-003",
+      "trackingCode": "FF-LIVE-0003",
+      "origin": "Phoenix",
+      "originLatitude": "33.4484",
+      "originLongitude": "-112.074",
+      "destinationLatitude": "34.0522",
+      "destinationLongitude": "-118.2437",
+      "estimatedArrival": "2026-11-23T18:44:29.975Z",
+      "destination": "Los Angeles",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "IN_TRANSIT",
+      "notes": "Synthetic live route moving into Southern California.",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:32.360Z",
+      "updatedAt": "2026-11-23T14:21:32.360Z",
+      "updates": [
+        {
+          "id": "cmwtctflw00155ij4gyt79qlc",
+          "shipmentId": "synthetic-live-003",
+          "status": "IN_TRANSIT",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:32.612Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtctfst00165ij4nglotj3a",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.4484",
+          "longitude": "-112.074",
+          "speedMph": "56",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst00175ij4c87w2iwm",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.460484",
+          "longitude": "-112.174483",
+          "speedMph": "59",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst00185ij4lotz8yl1",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.472561",
+          "longitude": "-112.27496",
+          "speedMph": "62",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst00195ij4s34qur2p",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.484626",
+          "longitude": "-112.375425",
+          "speedMph": "65",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001a5ij4dg0jhp6e",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.496672",
+          "longitude": "-112.47587",
+          "speedMph": "43",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001b5ij4a5sbghza",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.508694",
+          "longitude": "-112.576292",
+          "speedMph": "46",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001c5ij454vjywct",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.520685",
+          "longitude": "-112.676682",
+          "speedMph": "49",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001d5ij4jr5wma6z",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.532639",
+          "longitude": "-112.777036",
+          "speedMph": "52",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001e5ij4i6ajv6wq",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.544551",
+          "longitude": "-112.877347",
+          "speedMph": "55",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001f5ij4td21wqif",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.556414",
+          "longitude": "-112.97761",
+          "speedMph": "58",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001g5ij411bwiotf",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.568223",
+          "longitude": "-113.077819",
+          "speedMph": "61",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001h5ij4ahufhwln",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.579973",
+          "longitude": "-113.177968",
+          "speedMph": "64",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001i5ij4nxr3fhie",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.591658",
+          "longitude": "-113.278053",
+          "speedMph": "42",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001j5ij4xutl80os",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.603272",
+          "longitude": "-113.378067",
+          "speedMph": "45",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001k5ij4zmhlf13i",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.614812",
+          "longitude": "-113.478006",
+          "speedMph": "48",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001l5ij42wh9a89d",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.626271",
+          "longitude": "-113.577865",
+          "speedMph": "51",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001m5ij4cgi9hdb9",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.637646",
+          "longitude": "-113.677639",
+          "speedMph": "54",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctfst001n5ij4n954yrtj",
+          "shipmentId": "synthetic-live-003",
+          "latitude": "33.648932",
+          "longitude": "-113.777325",
+          "speedMph": "57",
+          "headingDegrees": 276,
+          "recordedAt": "2026-11-23T14:19:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-004",
+      "trackingCode": "FF-LIVE-0004",
+      "origin": "Portland",
+      "originLatitude": "45.5152",
+      "originLongitude": "-122.6784",
+      "destinationLatitude": "47.6062",
+      "destinationLongitude": "-122.3321",
+      "estimatedArrival": "2026-11-23T14:01:29.975Z",
+      "destination": "Seattle",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "DELIVERED",
+      "notes": "Synthetic completed route for delivery-history checks.",
+      "driverId": "local-driver-two",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:33.233Z",
+      "updatedAt": "2026-11-23T14:21:33.233Z",
+      "updates": [
+        {
+          "id": "cmwtctga2001p5ij4kojromxl",
+          "shipmentId": "synthetic-live-004",
+          "status": "DELIVERED",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:33.483Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtctgh0001q5ij4iynvgxn4",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.019351",
+          "longitude": "-122.476441",
+          "speedMph": "63",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T08:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001r5ij4kxket0fi",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.05456",
+          "longitude": "-122.468639",
+          "speedMph": "66",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001s5ij48i0btav1",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.08965",
+          "longitude": "-122.460718",
+          "speedMph": "44",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001t5ij45zbzrlzw",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.124627",
+          "longitude": "-122.452684",
+          "speedMph": "47",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001u5ij4uraoxpyq",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.159496",
+          "longitude": "-122.444542",
+          "speedMph": "50",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001v5ij4di4dnnk4",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.194264",
+          "longitude": "-122.436298",
+          "speedMph": "53",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001w5ij44uds4one",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.228937",
+          "longitude": "-122.42796",
+          "speedMph": "56",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001x5ij4v4rnsvmk",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.263522",
+          "longitude": "-122.419533",
+          "speedMph": "59",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001y5ij4r9ho29ck",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.298026",
+          "longitude": "-122.411026",
+          "speedMph": "62",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh1001z5ij4gb6nbsu1",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.332456",
+          "longitude": "-122.402445",
+          "speedMph": "65",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100205ij43812l2el",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.366821",
+          "longitude": "-122.393799",
+          "speedMph": "43",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100215ij45blzgavf",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.401127",
+          "longitude": "-122.385094",
+          "speedMph": "46",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100225ij47kp5ffpc",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.435383",
+          "longitude": "-122.376339",
+          "speedMph": "49",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100235ij4bi3bfq6w",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.469597",
+          "longitude": "-122.367542",
+          "speedMph": "52",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100245ij4zeifl88s",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.503778",
+          "longitude": "-122.358711",
+          "speedMph": "55",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100255ij40qq0xkuz",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.537933",
+          "longitude": "-122.349855",
+          "speedMph": "58",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100265ij4w2ylp000",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.572071",
+          "longitude": "-122.340982",
+          "speedMph": "61",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctgh100275ij4o93xtvur",
+          "shipmentId": "synthetic-live-004",
+          "latitude": "47.6062",
+          "longitude": "-122.3321",
+          "speedMph": "64",
+          "headingDegrees": 9,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-005",
+      "trackingCode": "FF-LIVE-0005",
+      "origin": "Miami",
+      "originLatitude": "25.7617",
+      "originLongitude": "-80.1918",
+      "destinationLatitude": "35.2271",
+      "destinationLongitude": "-80.8431",
+      "estimatedArrival": "2026-11-23T17:07:29.975Z",
+      "destination": "Charlotte",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "EXCEPTION",
+      "notes": "Synthetic exception route with delayed telemetry.",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:34.105Z",
+      "updatedAt": "2026-11-23T14:21:34.105Z",
+      "updates": [
+        {
+          "id": "cmwtctgya00295ij4ctg4cr04",
+          "shipmentId": "synthetic-live-005",
+          "status": "EXCEPTION",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:34.354Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtcth56002a5ij42wtw9d03",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "28.067623",
+          "longitude": "-80.382339",
+          "speedMph": "45",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T08:39:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth56002b5ij4nnh1e0oa",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "28.386759",
+          "longitude": "-80.407672",
+          "speedMph": "48",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T08:57:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth56002c5ij4ngtmtzxa",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "28.70548",
+          "longitude": "-80.432589",
+          "speedMph": "51",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T09:15:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002d5ij47q6zj7wb",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "29.023751",
+          "longitude": "-80.457057",
+          "speedMph": "54",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T09:33:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002e5ij4fq13e396",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "29.341542",
+          "longitude": "-80.481045",
+          "speedMph": "57",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T09:51:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002f5ij483htp2rq",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "29.658829",
+          "longitude": "-80.504528",
+          "speedMph": "60",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T10:09:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002g5ij4dkkphu7s",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "29.97559",
+          "longitude": "-80.527486",
+          "speedMph": "63",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T10:27:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002h5ij4mg0y0qf0",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "30.291814",
+          "longitude": "-80.549907",
+          "speedMph": "66",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T10:45:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002i5ij4fmqei2lm",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "30.607492",
+          "longitude": "-80.571781",
+          "speedMph": "44",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T11:03:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcth57002j5ij4ac1ymfet",
+          "shipmentId": "synthetic-live-005",
+          "latitude": "30.922622",
+          "longitude": "-80.593108",
+          "speedMph": "47",
+          "headingDegrees": 356,
+          "recordedAt": "2026-11-23T11:21:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-006",
+      "trackingCode": "FF-LIVE-0006",
+      "origin": "Houston",
+      "originLatitude": "29.7604",
+      "originLongitude": "-95.3698",
+      "destinationLatitude": "40.7128",
+      "destinationLongitude": "-74.006",
+      "estimatedArrival": "2026-11-23T20:07:29.975Z",
+      "destination": "New York",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "DISPATCHED",
+      "notes": "Synthetic route waiting for its first long-distance pings.",
+      "driverId": "local-driver-two",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:35.098Z",
+      "updatedAt": "2026-11-23T14:21:35.098Z",
+      "updates": [
+        {
+          "id": "cmwtcthpv002l5ij4t27cklae",
+          "shipmentId": "synthetic-live-006",
+          "status": "DISPATCHED",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:35.347Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtcthwr002m5ij4h1i210w0",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.7604",
+          "longitude": "-95.3698",
+          "speedMph": "0",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002n5ij4rh30sn34",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.78654",
+          "longitude": "-95.319902",
+          "speedMph": "55",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002o5ij4k4zxdtk0",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.81268",
+          "longitude": "-95.270004",
+          "speedMph": "58",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002p5ij43zbrxdk4",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.83882",
+          "longitude": "-95.220105",
+          "speedMph": "61",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002q5ij4aga0la83",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.86496",
+          "longitude": "-95.170207",
+          "speedMph": "64",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002r5ij46085stcq",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.891099",
+          "longitude": "-95.120309",
+          "speedMph": "42",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002s5ij4f3ibj9ug",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.917239",
+          "longitude": "-95.07041",
+          "speedMph": "45",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002t5ij4svtea9bm",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.943379",
+          "longitude": "-95.020512",
+          "speedMph": "48",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002u5ij4z2p9uqgo",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.969518",
+          "longitude": "-94.970613",
+          "speedMph": "51",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002v5ij44jy1zlw7",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "29.995657",
+          "longitude": "-94.920714",
+          "speedMph": "54",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002w5ij4v49a37qp",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.021796",
+          "longitude": "-94.870815",
+          "speedMph": "57",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002x5ij4oh9ue8wb",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.047935",
+          "longitude": "-94.820916",
+          "speedMph": "60",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002y5ij4avb7b24y",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.074074",
+          "longitude": "-94.771016",
+          "speedMph": "63",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr002z5ij4z98k6bmt",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.100212",
+          "longitude": "-94.721116",
+          "speedMph": "66",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr00305ij4f6k9ecsf",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.12635",
+          "longitude": "-94.671216",
+          "speedMph": "44",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr00315ij4xn5q8tgl",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.152488",
+          "longitude": "-94.621316",
+          "speedMph": "47",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr00325ij4gvn8i9fc",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.178625",
+          "longitude": "-94.571416",
+          "speedMph": "50",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtcthwr00335ij4axzxzh15",
+          "shipmentId": "synthetic-live-006",
+          "latitude": "30.204763",
+          "longitude": "-94.521515",
+          "speedMph": "53",
+          "headingDegrees": 63,
+          "recordedAt": "2026-11-23T14:19:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "synthetic-live-007",
+      "trackingCode": "FF-LIVE-0007",
+      "origin": "Denver",
+      "originLatitude": "39.7392",
+      "originLongitude": "-104.9903",
+      "destinationLatitude": "39.0997",
+      "destinationLongitude": "-94.5786",
+      "estimatedArrival": "2026-11-23T15:26:29.975Z",
+      "destination": "Kansas City",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "IN_TRANSIT",
+      "notes": "Synthetic live route approaching the Kansas City terminal.",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T14:21:35.966Z",
+      "updatedAt": "2026-11-23T14:21:35.966Z",
+      "updates": [
+        {
+          "id": "cmwtctie000355ij42zilhdjo",
+          "shipmentId": "synthetic-live-007",
+          "status": "IN_TRANSIT",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Synthetic live tracking shipment initialized",
+          "createdAt": "2026-11-23T14:21:36.216Z"
+        }
+      ],
+      "locationPings": [
+        {
+          "id": "cmwtctikw00365ij4s19w2frc",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.456561",
+          "longitude": "-99.626117",
+          "speedMph": "59",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T09:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw00375ij49g711ldn",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.445025",
+          "longitude": "-99.442131",
+          "speedMph": "62",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T09:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw00385ij45tt4nkot",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.433337",
+          "longitude": "-99.257992",
+          "speedMph": "65",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T09:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw00395ij4hm6k26pc",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.421497",
+          "longitude": "-99.073701",
+          "speedMph": "43",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T10:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003a5ij4vpwu9s1s",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.409508",
+          "longitude": "-98.889261",
+          "speedMph": "46",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T10:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003b5ij46c2v9004",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.397371",
+          "longitude": "-98.704674",
+          "speedMph": "49",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T10:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003c5ij49f8h1l61",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.385089",
+          "longitude": "-98.519941",
+          "speedMph": "52",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T11:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003d5ij4b0ovzyzc",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.372665",
+          "longitude": "-98.335067",
+          "speedMph": "55",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T11:19:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003e5ij45e29gj86",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.360104",
+          "longitude": "-98.150055",
+          "speedMph": "58",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T11:37:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003f5ij4gis4l6rj",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.347407",
+          "longitude": "-97.964908",
+          "speedMph": "61",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T11:55:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003g5ij4dbtmolyf",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.334581",
+          "longitude": "-97.779631",
+          "speedMph": "64",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T12:13:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003h5ij442qqz6t1",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.32163",
+          "longitude": "-97.594229",
+          "speedMph": "42",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T12:31:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003i5ij45o80bobe",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.308558",
+          "longitude": "-97.408707",
+          "speedMph": "45",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T12:49:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003j5ij462tc8b2w",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.295372",
+          "longitude": "-97.22307",
+          "speedMph": "48",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T13:07:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003k5ij4gblxa841",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.282077",
+          "longitude": "-97.037324",
+          "speedMph": "51",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T13:25:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003l5ij4rthxwqi8",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.268679",
+          "longitude": "-96.851476",
+          "speedMph": "54",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T13:43:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003m5ij4lijt1a6n",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.255185",
+          "longitude": "-96.665531",
+          "speedMph": "57",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T14:01:29.975Z",
+          "source": "synthetic"
+        },
+        {
+          "id": "cmwtctikw003n5ij4k8x7hsld",
+          "shipmentId": "synthetic-live-007",
+          "latitude": "39.241601",
+          "longitude": "-96.479497",
+          "speedMph": "60",
+          "headingDegrees": 94,
+          "recordedAt": "2026-11-23T14:19:29.975Z",
+          "source": "synthetic"
+        }
+      ],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwpr7qyu0001l04nhja6qy6i",
+      "trackingCode": "FF-20261121-4751F631",
+      "origin": "Kufstein ",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Abuja FCT",
+      "originBranchId": "cmwjo4ede0121no4rtipw3eh",
+      "destinationBranchId": "cmwjo4epl0005no3bxy5ort1s",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "DELIVERED",
+      "notes": "sensitive product",
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-21T01:53:30.438Z",
+      "updatedAt": "2026-11-22T14:17:14.006Z",
+      "updates": [
+        {
+          "id": "cmwpr7rrx0003l04nes9ysmju",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Kufstein  to Abuja FCT",
+          "createdAt": "2026-11-21T01:53:31.485Z"
+        },
+        {
+          "id": "cmwpr7za20005l04nbxdl6o7x",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Driver assigned: Collins Ortese; awaiting driver response",
+          "createdAt": "2026-11-21T01:53:41.210Z"
+        },
+        {
+          "id": "cmwrx6xy7000bl04nbrbmsu8h",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "PENDING",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Driver accepted the shipment assignment",
+          "createdAt": "2026-11-22T14:16:22.880Z"
+        },
+        {
+          "id": "cmwrx7dvw000dl04nkm60o76w",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "DISPATCHED",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to DISPATCHED",
+          "createdAt": "2026-11-22T14:16:43.532Z"
+        },
+        {
+          "id": "cmwrx7rdx000fl04npcoxb4cq",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "IN_TRANSIT",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to IN_TRANSIT",
+          "createdAt": "2026-11-22T14:17:01.029Z"
+        },
+        {
+          "id": "cmwrx81zp000hl04nk7hfy44f",
+          "shipmentId": "cmwpr7qyu0001l04nhja6qy6i",
+          "status": "DELIVERED",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to DELIVERED",
+          "createdAt": "2026-11-22T14:17:14.773Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "local-shipment-001",
+      "trackingCode": "FF-LOCAL-001",
+      "origin": "Algiers",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Oran",
+      "originBranchId": null,
+      "destinationBranchId": null,
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "IN_TRANSIT",
+      "notes": "Seed shipment for local smoke checks.",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "PENDING",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-16T19:40:19.938Z",
+      "updatedAt": "2026-11-23T16:08:46.473Z",
+      "updates": [
+        {
+          "id": "cmwjo4foi0005no3bib066k5m",
+          "shipmentId": "local-shipment-001",
+          "status": "IN_TRANSIT",
+          "actorEmail": "admin@fleetflow.local",
+          "location": null,
+          "description": "Seed shipment created for local development",
+          "createdAt": "2026-11-16T19:40:19.938Z"
+        },
+        {
+          "id": "cmwmk57v90001qc5voe3jqjco",
+          "shipmentId": "local-shipment-001",
+          "status": "IN_TRANSIT",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Driver unassigned",
+          "createdAt": "2026-11-18T20:12:16.528Z"
+        },
+        {
+          "id": "cmwmpaycb0001ld4o3w19kdru",
+          "shipmentId": "local-shipment-001",
+          "status": "IN_TRANSIT",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Driver assigned: Collins Ortese; awaiting driver response",
+          "createdAt": "2026-11-18T22:36:42.204Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwmqmc020003ld4o562liupy",
+      "trackingCode": "FF-20261118-69FE6F70",
+      "origin": "Abuja FCT",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Madrid",
+      "originBranchId": "cmwjo4epl0005no3bxy5ort1s",
+      "destinationBranchId": "cmwjo4exn0004no3bwh3ttj1g",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "EXCEPTION",
+      "notes": null,
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-18T23:13:32.733Z",
+      "updatedAt": "2026-11-22T15:01:09.824Z",
+      "updates": [
+        {
+          "id": "cmwmqmd010005ld4ofl4to98n",
+          "shipmentId": "cmwmqmc020003ld4o562liupy",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Abuja FCT to Madrid",
+          "createdAt": "2026-11-18T23:13:34.032Z"
+        },
+        {
+          "id": "cmwrys8dw0005mg4nxv7kv4yo",
+          "shipmentId": "cmwmqmc020003ld4o562liupy",
+          "status": "PENDING",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Driver accepted the shipment assignment",
+          "createdAt": "2026-11-22T15:00:55.797Z"
+        },
+        {
+          "id": "cmwrysjsa0007mg4nyv5v1tcu",
+          "shipmentId": "cmwmqmc020003ld4o562liupy",
+          "status": "EXCEPTION",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to EXCEPTION",
+          "createdAt": "2026-11-22T15:01:10.570Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwrwnjmm0007l04nspio01r3",
+      "trackingCode": "FF-20261122-07306BE9",
+      "origin": "Kufstein ",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Madrid",
+      "originBranchId": "cmwjo4ede0121no4rtipw3eh",
+      "destinationBranchId": "cmwjo4exn0004no3bwh3ttj1g",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "DISPATCHED",
+      "notes": null,
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "ACCEPTED",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-22T14:01:17.852Z",
+      "updatedAt": "2026-11-22T15:01:45.325Z",
+      "updates": [
+        {
+          "id": "cmwrwnkj30009l04nfv48xb8e",
+          "shipmentId": "cmwrwnjmm0007l04nspio01r3",
+          "status": "PENDING",
+          "actorEmail": "collinzaondona@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Kufstein  to Madrid",
+          "createdAt": "2026-11-22T14:01:19.022Z"
+        },
+        {
+          "id": "cmwryrsp30001mg4nk8gblk24",
+          "shipmentId": "cmwrwnjmm0007l04nspio01r3",
+          "status": "PENDING",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Driver accepted the shipment assignment",
+          "createdAt": "2026-11-22T15:00:35.461Z"
+        },
+        {
+          "id": "cmwrytb2x000bmg4nkie8ablq",
+          "shipmentId": "cmwrwnjmm0007l04nspio01r3",
+          "status": "DISPATCHED",
+          "actorEmail": "collins.ortese.driver@fleetflow.local",
+          "location": null,
+          "description": "Status changed to DISPATCHED",
+          "createdAt": "2026-11-22T15:01:45.945Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwtgyb2e00015ij89ior5q2n",
+      "trackingCode": "FF-20261123-8893627A",
+      "origin": "Madrid",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Tunis",
+      "originBranchId": "cmwjo4exn0004no3bwh3ttj1g",
+      "destinationBranchId": "cmwjo4epl0002no3boyeqpchk",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "PENDING",
+      "notes": "do i",
+      "driverId": "local-driver-one",
+      "assignmentStatus": "PENDING",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T16:17:18.466Z",
+      "updatedAt": "2026-11-23T16:17:18.466Z",
+      "updates": [
+        {
+          "id": "cmwtgybzn00035ij8tg5euq3n",
+          "shipmentId": "cmwtgyb2e00015ij89ior5q2n",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Madrid to Tunis",
+          "createdAt": "2026-11-23T16:17:19.667Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwtgyjv100055ij81k0hiuwl",
+      "trackingCode": "FF-20261123-8948C869",
+      "origin": "Algiers",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Oran",
+      "originBranchId": "cmwjo4ed90000no3bk2rnz7wf",
+      "destinationBranchId": "cmwjo4elk0001no3bripp5glq",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "PENDING",
+      "notes": null,
+      "driverId": "local-driver-two",
+      "assignmentStatus": "PENDING",
+      "customerId": "local-customer",
+      "createdAt": "2026-11-23T16:17:29.870Z",
+      "updatedAt": "2026-11-23T16:17:29.870Z",
+      "updates": [
+        {
+          "id": "cmwtgykd700075ij8hqwxd7zf",
+          "shipmentId": "cmwtgyjv100055ij81k0hiuwl",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Algiers to Oran",
+          "createdAt": "2026-11-23T16:17:30.523Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    },
+    {
+      "id": "cmwtgyq1q00095ij8hzcshgjt",
+      "trackingCode": "FF-20261123-5452C30C",
+      "origin": "Algiers",
+      "originLatitude": null,
+      "originLongitude": null,
+      "destinationLatitude": null,
+      "destinationLongitude": null,
+      "estimatedArrival": null,
+      "destination": "Oran",
+      "originBranchId": "cmwjo4ed90000no3bk2rnz7wf",
+      "destinationBranchId": "cmwjo4elk0001no3bripp5glq",
+      "originFacilityId": null,
+      "destinationFacilityId": null,
+      "status": "PENDING",
+      "notes": null,
+      "driverId": "local-driver-collins-2",
+      "assignmentStatus": "PENDING",
+      "customerId": "cmws0k2ra0000mgegok6wb3qe",
+      "createdAt": "2026-11-23T16:17:37.887Z",
+      "updatedAt": "2026-11-23T16:17:37.887Z",
+      "updates": [
+        {
+          "id": "cmwtgyr13000b5ij8w6bc74mg",
+          "shipmentId": "cmwtgyq1q00095ij8hzcshgjt",
+          "status": "PENDING",
+          "actorEmail": "djooker309@gmail.com",
+          "location": null,
+          "description": "Shipment created with route Algiers to Oran",
+          "createdAt": "2026-11-23T16:17:39.160Z"
+        }
+      ],
+      "locationPings": [],
+      "deliveryProofs": []
+    }
+  ],
+  "handovers": []
+}

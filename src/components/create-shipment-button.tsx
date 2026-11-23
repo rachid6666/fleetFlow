@@ -10,6 +10,9 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [formOptions, setFormOptions] = useState(options);
+  const [refreshingOptions, setRefreshingOptions] = useState(false);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
 
@@ -27,10 +30,33 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
     };
   }, [open]);
 
+  useEffect(() => {
+    setFormOptions(options);
+  }, [options]);
+
+  async function refreshOptionsFromNeon() {
+    setRefreshingOptions(true);
+    setOptionsError(null);
+    try {
+      const response = await fetch("/api/shipments/form-options", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error ?? "Could not refresh shipment options");
+      if (!Array.isArray(payload.locations) || !Array.isArray(payload.drivers) || !Array.isArray(payload.customers)) {
+        throw new Error("Shipment options response was invalid");
+      }
+      setFormOptions(payload as ShipmentFormOptions);
+    } catch (cause) {
+      setOptionsError(cause instanceof Error ? cause.message : "Could not refresh shipment options");
+    } finally {
+      setRefreshingOptions(false);
+    }
+  }
+
   function showDialog() {
     setError(null);
     setNotice(null);
     setOpen(true);
+    void refreshOptionsFromNeon();
   }
 
   function closeDialog() {
@@ -66,11 +92,11 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const originBranchId = String(form.get("originBranchId") ?? "");
-    const destinationBranchId = String(form.get("destinationBranchId") ?? "");
+    const originFacilityId = String(form.get("originFacilityId") ?? "");
+    const destinationFacilityId = String(form.get("destinationFacilityId") ?? "");
 
-    if (originBranchId === destinationBranchId) {
-      setError("Origin and destination must be different branches");
+    if (originFacilityId === destinationFacilityId) {
+      setError("Origin and destination must be different storage locations");
       return;
     }
 
@@ -84,8 +110,8 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          originBranchId,
-          destinationBranchId,
+          originFacilityId,
+          destinationFacilityId,
           customerId: String(form.get("customerId") ?? ""),
           driverId: driverId || null,
           notes: notes || undefined,
@@ -103,6 +129,12 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
       setSaving(false);
     }
   }
+
+  const defaultOriginLocation = formOptions.locations[0];
+  const defaultDestinationLocation = formOptions.locations.find((location) =>
+    location.id !== defaultOriginLocation?.id
+    && (location.city !== defaultOriginLocation?.city || location.state !== defaultOriginLocation?.state),
+  ) ?? formOptions.locations[1];
 
   return (
     <div className="create-shipment-control">
@@ -133,7 +165,7 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
               <div>
                 <div className="eyebrow">New shipment</div>
                 <h2 id="create-shipment-title">Create shipment</h2>
-                <p id="create-shipment-description">Choose the route and customer. A tracking code will be generated automatically.</p>
+                <p id="create-shipment-description">Choose the U.S. storage locations and customer. A tracking code will be generated automatically.</p>
               </div>
               <button
                 className="modal-close"
@@ -146,27 +178,36 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
               </button>
             </div>
 
-            <form className="shipment-form" onSubmit={handleSubmit}>
+            <form className="shipment-form" onSubmit={handleSubmit} aria-busy={refreshingOptions}>
+              {refreshingOptions ? (
+                <p className="shipment-form-hint" role="status">Refreshing U.S. storage locations from Neon and people from Authentik…</p>
+              ) : null}
+              {optionsError ? (
+                <p className="shipment-form-error" role="alert">
+                  {optionsError}. Showing the last options loaded from the connected directories.
+                </p>
+              ) : null}
+
               <div className="shipment-form-grid">
-                <label className="form-field">
-                  <span>Origin branch</span>
-                  <select name="originBranchId" required autoFocus defaultValue={options.branches[0]?.id ?? ""}>
-                    <option value="" disabled>Select origin</option>
-                    {options.branches.map((branch) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.city} · {branch.name} ({branch.code})
+<label className="form-field">
+                  <span>Origin storage location</span>
+                  <select name="originFacilityId" required autoFocus defaultValue={defaultOriginLocation?.id ?? ""}>
+                    <option value="" disabled>Select origin location</option>
+                    {formOptions.locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.city}, {location.state} · {location.name} ({location.id}) · {location.dockDoors} doors
                       </option>
                     ))}
                   </select>
                 </label>
 
-                <label className="form-field">
-                  <span>Destination branch</span>
-                  <select name="destinationBranchId" required defaultValue={options.branches[1]?.id ?? ""}>
-                    <option value="" disabled>Select destination</option>
-                    {options.branches.map((branch) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.city} · {branch.name} ({branch.code})
+<label className="form-field">
+                  <span>Destination storage location</span>
+                  <select name="destinationFacilityId" required defaultValue={defaultDestinationLocation?.id ?? ""}>
+                    <option value="" disabled>Select destination location</option>
+                    {formOptions.locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.city}, {location.state} · {location.name} ({location.id}) · {location.dockDoors} doors
                       </option>
                     ))}
                   </select>
@@ -176,7 +217,7 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
                   <span>Customer</span>
                   <select name="customerId" required defaultValue="">
                     <option value="" disabled>Select customer</option>
-                    {options.customers.map((customer) => (
+                    {formOptions.customers.map((customer) => (
                       <option key={customer.id} value={customer.id}>
                         {customer.name} · {customer.email}
                       </option>
@@ -188,7 +229,7 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
                   <span>Driver <small>optional</small></span>
                   <select name="driverId" defaultValue="">
                     <option value="">Leave unassigned</option>
-                    {options.drivers.map((driver) => (
+                    {formOptions.drivers.map((driver) => (
                       <option key={driver.id} value={driver.id}>
                         {driver.name} · {driver.email}
                       </option>

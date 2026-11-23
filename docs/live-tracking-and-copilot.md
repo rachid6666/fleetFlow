@@ -4,13 +4,7 @@
 
 `ShipmentLocationPing` stores latitude, longitude, speed, heading, source, and timestamp for a shipment. Shipment coordinates and `estimatedArrival` provide route progress and ETA context.
 
-Synthetic data creates seven shipments with deterministic GPS trails:
-
-```powershell
-npm run db:seed:tracking
-```
-
-The tracking codes are `FF-LIVE-0001` through `FF-LIVE-0007`. Re-running the seed replaces only pings whose source is `synthetic`; it does not delete API-ingested pings.
+No demo shipments or synthetic GPS trails are created by the seed. Real shipments are created from U.S. storage facilities in Neon, and telemetry enters through the tracking API or an approved integration.
 
 The admin overview polls `/api/tracking/live` every 10 seconds and renders the latest position, trail, progress, remaining miles, ETA, and stale-feed state.
 
@@ -20,7 +14,7 @@ The admin overview polls `/api/tracking/live` every 10 seconds and renders the l
 
 ```json
 {
-  "trackingCode": "FF-LIVE-0001",
+  "trackingCode": "FF-20261123-ABCD1234",
   "latitude": 33.1,
   "longitude": -86.4,
   "speedMph": 58.2,

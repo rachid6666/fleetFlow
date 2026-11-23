@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-23T14:15:48.866511+00:00",
+  "generated_at": "2026-11-23T17:17:34.145333+00:00",
   "nodes": {
     "auth_rolefromgroups": {
-      "code_fingerprint": "c5087d4bff6bec5c4ea65c347180a719c7f462a9b64791fefec31ccd10cdfb80",
+      "code_fingerprint": "ad98d34413413b657f887ab1c1d255040af3f57341266346bb4a9e4e012198d3",
       "label": "roleFromGroups()",
       "last": "2026-11-23T13:27:20.154884+00:00",
       "provenance": [
@@ -12,7 +12,7 @@
           "q": "im trying to log in to admin but got issues 303"
         }
       ],
-      "score": 0.999222461,
+      "score": 0.996312707,
       "source_file": "auth.ts",
       "status": "tentative",
       "uses": 1
@@ -28,13 +28,29 @@
           "q": "im trying to log in to admin but got issues 303"
         }
       ],
-      "score": 0.999222461,
+      "score": 0.996312707,
       "source_file": "docker-compose.yml",
       "status": "tentative",
       "uses": 1
     },
+    "src_app_admin_analytics_page_analyticspage": {
+      "code_fingerprint": "696d2ea3a859196104d619bce741b064813e732246fc8852b2b68e963797b932",
+      "label": "AnalyticsPage()",
+      "last": "2026-11-23T14:18:16.251023+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:18:16.251023+00:00",
+          "outcome": "useful",
+          "q": "Add a Superset dashboard view to the FleetFlow admin overview"
+        }
+      ],
+      "score": 0.997127281,
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
     "src_app_admin_drivers_page_driverspage": {
-      "code_fingerprint": "17cf686d12045bc4b1088afb3d2c1c0c1a2f435347acbaaa257f8d6d66ac5c2b",
+      "code_fingerprint": "a9ffc6669cb0cbdfadffe0a399bf2940370d1900159631ff211fe4d6f5ea31c1",
       "label": "DriversPage()",
       "last": "2026-11-23T14:09:40.473363+00:00",
       "provenance": [
@@ -44,29 +60,39 @@
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 0.996989758,
       "source_file": "src/app/admin/drivers/page.tsx",
       "status": "tentative",
       "uses": 1
     },
     "src_app_admin_page_adminpage": {
-      "code_fingerprint": "96056dba5ff1790fd48b38ca6476154662afff3c1d8aef8e7bf9924668ad02d6",
+      "code_fingerprint": "af442219e7c7b40c2c2bd835302090f383eeeee27cedc4fd811df7c008a29d9b",
       "label": "AdminPage()",
-      "last": "2026-11-23T14:09:40.473363+00:00",
+      "last": "2026-11-23T14:21:34.727788+00:00",
       "provenance": [
+        {
+          "date": "2026-11-23T14:21:34.727788+00:00",
+          "outcome": "useful",
+          "q": "Make the FleetFlow admin overview visually match the supplied dashboard reference with Superset, fleet metrics, a data table, and a map"
+        },
+        {
+          "date": "2026-11-23T14:18:16.251023+00:00",
+          "outcome": "useful",
+          "q": "Add a Superset dashboard view to the FleetFlow admin overview"
+        },
         {
           "date": "2026-11-23T14:09:40.473363+00:00",
           "outcome": "useful",
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 2.991297245,
       "source_file": "src/app/admin/page.tsx",
-      "status": "tentative",
-      "uses": 1
+      "status": "preferred",
+      "uses": 3
     },
     "src_app_admin_shipments_page_shipmentspage": {
-      "code_fingerprint": "111ae995d4ffe29ea7f852e9a0b4937e40ea9e75d49c2cf9c01d42a457d702fd",
+      "code_fingerprint": "2c48e8f89a829dba5bc210f2a3c15381d07b9d63f3b6b69d7773049d01231c17",
       "label": "ShipmentsPage()",
       "last": "2026-11-23T14:09:40.473363+00:00",
       "provenance": [
@@ -76,8 +102,24 @@
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 0.996989758,
       "source_file": "src/app/admin/shipments/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_api_superset_guest_token_route": {
+      "code_fingerprint": "11812b36e2ecff513bbc3c82f77861520a83204c5e80f724cf38ebaaa79307f8",
+      "label": "guest-token/route.ts",
+      "last": "2026-11-23T14:18:16.251023+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:18:16.251023+00:00",
+          "outcome": "useful",
+          "q": "Add a Superset dashboard view to the FleetFlow admin overview"
+        }
+      ],
+      "score": 0.997127281,
+      "source_file": "src/app/api/superset/guest-token/route.ts",
       "status": "tentative",
       "uses": 1
     },
@@ -92,13 +134,13 @@
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 0.996989758,
       "source_file": "",
       "status": "tentative",
       "uses": 1
     },
     "src_app_login_page_loginpage": {
-      "code_fingerprint": "06f637a8dfa6e0493d404272e67c9b4824e4dca6332214194cec6087fad710fd",
+      "code_fingerprint": "00661125cb04b854bd179dc1172b6341efe50bee3365fb4994f9b4b0ed09ba23",
       "label": "LoginPage()",
       "last": "2026-11-23T13:27:20.154884+00:00",
       "provenance": [
@@ -108,8 +150,56 @@
           "q": "im trying to log in to admin but got issues 303"
         }
       ],
-      "score": 0.999222461,
+      "score": 0.996312707,
       "source_file": "src/app/login/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_components_admin_ui_pageheader": {
+      "code_fingerprint": "9adb8d8f318bba9f8188b99cb07b3ee269a5cb1289c5755fa99929b7a1c50104",
+      "label": "PageHeader()",
+      "last": "2026-11-23T14:18:16.251023+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:18:16.251023+00:00",
+          "outcome": "useful",
+          "q": "Add a Superset dashboard view to the FleetFlow admin overview"
+        }
+      ],
+      "score": 0.997127281,
+      "source_file": "src/components/admin-ui.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_components_admin_ui_panelheading": {
+      "code_fingerprint": "9adb8d8f318bba9f8188b99cb07b3ee269a5cb1289c5755fa99929b7a1c50104",
+      "label": "PanelHeading()",
+      "last": "2026-11-23T14:21:34.727788+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:21:34.727788+00:00",
+          "outcome": "useful",
+          "q": "Make the FleetFlow admin overview visually match the supplied dashboard reference with Superset, fleet metrics, a data table, and a map"
+        }
+      ],
+      "score": 0.997180206,
+      "source_file": "src/components/admin-ui.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_components_live_tracking_map_livetrackingmap": {
+      "code_fingerprint": "1ad3235c24202eac19ef310974b511c2260f9cfeb9415edade4330165c1ec8b2",
+      "label": "LiveTrackingMap()",
+      "last": "2026-11-23T14:21:34.727788+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:21:34.727788+00:00",
+          "outcome": "useful",
+          "q": "Make the FleetFlow admin overview visually match the supplied dashboard reference with Superset, fleet metrics, a data table, and a map"
+        }
+      ],
+      "score": 0.997180206,
+      "source_file": "src/components/live-tracking-map.tsx",
       "status": "tentative",
       "uses": 1
     },
@@ -124,13 +214,13 @@
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 0.996989758,
       "source_file": "src/components/sidebar-navigation.tsx",
       "status": "tentative",
       "uses": 1
     },
     "src_components_sidebar_sidebar": {
-      "code_fingerprint": "5cbf179020ec251d21ca0bb22c9677529beae4d3ce9693f417ba90d483d1986b",
+      "code_fingerprint": "a737fa1f4ce39229eaa95f903c6f3392e243d0c304f0e47e68602bfc82f1b54e",
       "label": "Sidebar()",
       "last": "2026-11-23T14:09:40.473363+00:00",
       "provenance": [
@@ -140,26 +230,52 @@
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 0.996989758,
       "source_file": "src/components/sidebar.tsx",
       "status": "tentative",
       "uses": 1
     },
-    "src_lib_data_getlogisticsdashboard": {
-      "code_fingerprint": "1f6c655aa9eeb691b217aea34973241c2949cfbe53dd283449a1eedde9822297",
-      "label": "getLogisticsDashboard()",
-      "last": "2026-11-23T14:09:40.473363+00:00",
+    "src_components_superset_analytics_supersetanalytics": {
+      "code_fingerprint": "1f6c809226afa60119ebb0349d5fe9572acffb6bbdb4394f93ae86f7e2d8de41",
+      "label": "SupersetAnalytics()",
+      "last": "2026-11-23T14:21:34.727788+00:00",
       "provenance": [
+        {
+          "date": "2026-11-23T14:21:34.727788+00:00",
+          "outcome": "useful",
+          "q": "Make the FleetFlow admin overview visually match the supplied dashboard reference with Superset, fleet metrics, a data table, and a map"
+        },
+        {
+          "date": "2026-11-23T14:18:16.251023+00:00",
+          "outcome": "useful",
+          "q": "Add a Superset dashboard view to the FleetFlow admin overview"
+        }
+      ],
+      "score": 1.994307487,
+      "source_file": "src/components/superset-analytics.tsx",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_lib_data_getlogisticsdashboard": {
+      "code_fingerprint": "30262307219da3d0d4dc35b29379ff0b2d71977297e9b1e426c36b7512e3fcc6",
+      "label": "getLogisticsDashboard()",
+      "last": "2026-11-23T14:21:34.727788+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:21:34.727788+00:00",
+          "outcome": "useful",
+          "q": "Make the FleetFlow admin overview visually match the supplied dashboard reference with Superset, fleet metrics, a data table, and a map"
+        },
         {
           "date": "2026-11-23T14:09:40.473363+00:00",
           "outcome": "useful",
           "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
         }
       ],
-      "score": 0.99990149,
+      "score": 1.994169964,
       "source_file": "src/lib/data.ts",
-      "status": "tentative",
-      "uses": 1
+      "status": "preferred",
+      "uses": 2
     }
   },
   "version": 1

@@ -20,6 +20,7 @@ Docker does not run a PostgreSQL container for FleetFlow or Authentik.
 |---|---|---|---|
 | FleetFlow app and Prisma | `fleet` | `DATABASE_URL` pooled endpoint | `DATABASE_URL_UNPOOLED` direct endpoint |
 | Authentik server and worker | `authentik` | `PG_HOST` pooled endpoint | `PG_DIRECT_HOST` direct endpoint |
+| FleetFlow identity directory sync | `authentik` | `AUTHENTIK_DB_HOST` pooled endpoint (read-only queries) | n/a |
 
 The two databases remain isolated even though they can live in the same Neon project. Authentik uses the direct endpoint for advisory-lock coordination and future schema upgrades. Its Compose configuration disables automatic startup migrations by default to avoid leaking a Neon advisory lock across container restarts; see [`authentik.md`](authentik.md#neon-migration-workaround).
 
@@ -34,7 +35,7 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | `/admin` | `loads`, `trips`, `drivers`, `trucks`, `delivery_events`, `safety_incidents` | Admin-only; live load revenue, distance, active fleet, delivery performance, and recent loads |
 | `/admin` live GPS panel | `Shipment`, `ShipmentLocationPing`, related `User` | Admin-only; latest position, route trail, ETA, progress, and stale-feed state |
 | `/admin/copilot` | Server-built aggregate snapshot from FleetFlow and Kaggle tables | Admin-only; grounded AI answers through local Ollama with a rules fallback |
-| `/admin/shipments` | `Shipment`, related `User` records | Admin-only; live shipment, driver, and customer data |
+| `/admin/shipments` | `Shipment`, `facilities`, synchronized Authentik `User` projections | CEO-only; live shipments, U.S. storage locations, drivers, and customers |
 | `/driver` | `Shipment`, signed-in driver `User` | Driver-only; shipments assigned to the signed-in account email; no full driver directory |
 | `/customer` | `Shipment`, related customer `User`, `StatusLog` | Customer-only; own shipments and customer-safe timelines with internal notes and driver details omitted |
 | `/track` | None | Compatibility redirect to `/customer` |
@@ -46,13 +47,13 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | `POST /api/tracking/pings` | `Shipment`, `ShipmentLocationPing` | Admin or assigned driver; appends GPS telemetry without changing shipment status |
 | `POST /api/copilot` | Aggregated operational snapshot | Admin-only AI operations question |
 
-FleetFlow's separate operational records are stored in the `User`, `Branch`, `Shipment`, and `StatusLog` tables. `/admin/shipments`, `/driver`, and `/customer` read those tables through role-scoped server queries. The seed script provisions reference branches; it does not create shipment demo records. Shipment lists remain empty until FleetFlow shipments are created.
+FleetFlow's operational records are stored in `User`, `Shipment`, `StatusLog`, and `ShipmentLocationPing`. Shipment origins and destinations reference the imported U.S. `facilities` table. The local `User` rows for drivers and customers are identity projections synchronized from Authentik; they preserve the relations and audit fields FleetFlow needs without duplicating the Authentik source of truth. `npm run db:seed` syncs those identities and reports the available facilities. It does not create demo branches, users, shipments, or GPS pings.
 
 ## Kaggle logistics dataset
 
 The [MIT-licensed Logistics Operations Database](https://www.kaggle.com/datasets/yogape/logistics-operations-database) is loaded into 14 typed relational tables with plain names: `customers`, `drivers`, `trucks`, `trailers`, `facilities`, `routes`, `loads`, `trips`, `fuel_purchases`, `maintenance_records`, `delivery_events`, `safety_incidents`, `driver_monthly_metrics`, and `truck_utilization_metrics`. Their primary keys and foreign-key relationships are defined in the Prisma schema. Prisma model names retain the `Kaggle` prefix to distinguish this historical/imported dataset from FleetFlow's operational entities.
 
-The admin overview now queries these tables from Neon directly. It shows recorded load count and revenue, trip mileage, active driver/truck counts, delivery punctuality, fuel efficiency, safety incident totals, and recent loads joined to their customers and routes. The Kaggle import still does **not** create `User` accounts or FleetFlow `Shipment` records. Source driver records have no Authentik identity, and historical trucking `loads` are not the same domain record as a FleetFlow shipment.
+The admin overview now queries these tables from Neon directly. It shows recorded load count and revenue, trip mileage, active driver/truck counts, delivery punctuality, fuel efficiency, safety incident totals, and recent loads joined to their customers and routes. The Kaggle import still does **not** create FleetFlow `Shipment` records or Authentik identities. Its facilities are the operational location source for newly created shipments, while drivers and customers are synchronized separately from the Authentik database.
 
 The table rename migration uses PostgreSQL `ALTER TABLE ... RENAME` and renames the existing indexes and constraints; it does not recreate or discard the imported rows.
 

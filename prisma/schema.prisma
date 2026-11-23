@@ -39,16 +39,16 @@ enum HandoverEventStatus {
 }
 
 model User {
-  id              String     @id @default(cuid())
-  email           String     @unique
+  id              String             @id @default(cuid())
+  email           String             @unique
   password        String
   name            String
-  role            Role       @default(CUSTOMER)
+  role            Role               @default(CUSTOMER)
   availability    DriverAvailability @default(AVAILABLE)
-  shipments       Shipment[] @relation("DriverShipments")
-  clientShipments Shipment[] @relation("CustomerShipments")
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  shipments       Shipment[]         @relation("DriverShipments")
+  clientShipments Shipment[]         @relation("CustomerShipments")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 }
 
 model Branch {
@@ -70,37 +70,43 @@ model Branch {
 }
 
 model Shipment {
-  id                  String         @id @default(cuid())
-  trackingCode        String         @unique @default(uuid())
-  origin              String
-  originLatitude       Decimal?       @db.Decimal(9, 6)
-  originLongitude      Decimal?       @db.Decimal(9, 6)
-  destinationLatitude  Decimal?       @db.Decimal(9, 6)
-  destinationLongitude Decimal?       @db.Decimal(9, 6)
-  estimatedArrival     DateTime?
-  destination         String
-  originBranchId      String?
-  originBranch        Branch?        @relation("OriginBranch", fields: [originBranchId], references: [id])
-  destinationBranchId String?
-  destinationBranch   Branch?        @relation("DestinationBranch", fields: [destinationBranchId], references: [id])
-  status              ShipmentStatus @default(PENDING)
-  notes               String?
-  driverId            String?
-  driver              User?          @relation("DriverShipments", fields: [driverId], references: [id])
-  assignmentStatus    AssignmentStatus @default(ACCEPTED)
-  customerId          String
-  customer            User           @relation("CustomerShipments", fields: [customerId], references: [id])
-  updates             StatusLog[]
-  locationPings       ShipmentLocationPing[]
-  deliveryProofs       DeliveryProof[]
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  id                    String                 @id @default(cuid())
+  trackingCode          String                 @unique @default(uuid())
+  origin                String
+  originLatitude        Decimal?               @db.Decimal(9, 6)
+  originLongitude       Decimal?               @db.Decimal(9, 6)
+  destinationLatitude   Decimal?               @db.Decimal(9, 6)
+  destinationLongitude  Decimal?               @db.Decimal(9, 6)
+  estimatedArrival      DateTime?
+  destination           String
+  originBranchId        String?
+  originBranch          Branch?                @relation("OriginBranch", fields: [originBranchId], references: [id])
+  destinationBranchId   String?
+  destinationBranch     Branch?                @relation("DestinationBranch", fields: [destinationBranchId], references: [id])
+  originFacilityId      String?
+  originFacility        KaggleFacility?        @relation("OriginFacility", fields: [originFacilityId], references: [facilityId])
+  destinationFacilityId String?
+  destinationFacility   KaggleFacility?        @relation("DestinationFacility", fields: [destinationFacilityId], references: [facilityId])
+  status                ShipmentStatus         @default(PENDING)
+  notes                 String?
+  driverId              String?
+  driver                User?                  @relation("DriverShipments", fields: [driverId], references: [id])
+  assignmentStatus      AssignmentStatus       @default(ACCEPTED)
+  customerId            String
+  customer              User                   @relation("CustomerShipments", fields: [customerId], references: [id])
+  updates               StatusLog[]
+  locationPings         ShipmentLocationPing[]
+  deliveryProofs        DeliveryProof[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   @@index([status])
   @@index([driverId, status])
   @@index([customerId])
   @@index([originBranchId])
   @@index([destinationBranchId])
+  @@index([originFacilityId])
+  @@index([destinationFacilityId])
 }
 
 model DeliveryProof {
@@ -145,10 +151,9 @@ model ShipmentLocationPing {
   @@map("ShipmentLocationPing")
 }
 
-
 model HandoverEvent {
-  id           String             @id @default(cuid())
-  eventId      String             @unique
+  id           String              @id @default(cuid())
+  eventId      String              @unique
   shipmentId   String
   fromDriverId String
   toDriverId   String
@@ -156,7 +161,7 @@ model HandoverEvent {
   status       HandoverEventStatus
   errorReason  String?
   processedAt  DateTime?
-  createdAt    DateTime           @default(now())
+  createdAt    DateTime            @default(now())
 
   @@index([shipmentId, createdAt])
   @@index([status, createdAt])
@@ -234,16 +239,18 @@ model KaggleTrailer {
 }
 
 model KaggleFacility {
-  facilityId     String                @id @map("facility_id")
-  facilityName   String                @map("facility_name")
-  facilityType   String                @map("facility_type")
-  city           String
-  state          String
-  latitude       Decimal               @db.Decimal(9, 6)
-  longitude      Decimal               @db.Decimal(9, 6)
-  dockDoors      Int                   @map("dock_doors")
-  operatingHours String                @map("operating_hours")
-  deliveryEvents KaggleDeliveryEvent[]
+  facilityId           String                @id @map("facility_id")
+  facilityName         String                @map("facility_name")
+  facilityType         String                @map("facility_type")
+  city                 String
+  state                String
+  latitude             Decimal               @db.Decimal(9, 6)
+  longitude            Decimal               @db.Decimal(9, 6)
+  dockDoors            Int                   @map("dock_doors")
+  operatingHours       String                @map("operating_hours")
+  deliveryEvents       KaggleDeliveryEvent[]
+  originShipments      Shipment[]            @relation("OriginFacility")
+  destinationShipments Shipment[]            @relation("DestinationFacility")
 
   @@map("facilities")
 }

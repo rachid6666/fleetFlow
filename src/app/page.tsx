@@ -1,9 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "../../auth";
 import { SupersetNetworkMap } from "@/components/superset-network-map";
 import { HeroVideoSlider } from "@/components/hero-video-slider";
 import { activeBranches } from "@/lib/branches";
+import { workspacePathForRole } from "@/lib/roles";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth();
+  if (session?.user) redirect(workspacePathForRole(session.user.role));
+
   return (
     <main className="landing-page">
       <header className="landing-nav"><Link className="landing-brand" href="/"><span className="brand-mark">FF</span><span>FleetFlow</span></Link><nav><a href="#platform">Platform</a><a href="#network">Network</a><a href="#roles">Workspaces</a></nav><div className="page-actions"><Link className="button secondary" href="/login">Sign in</Link><Link className="button" href="/login">Get started</Link></div></header>

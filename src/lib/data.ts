@@ -1,5 +1,6 @@
 import { Prisma, type AssignmentStatus, type DriverAvailability, type ShipmentStatus } from "@prisma/client";
 import { randomUUID } from "node:crypto";
+import { syncAuthentikDirectoryUsers } from "./authentik-directory";
 import { assertTransition } from "./shipment-rules";
 import { prisma } from "./prisma";
 import type { AppRole } from "./roles";
@@ -59,7 +60,13 @@ function toShipment(record: ShipmentRecord): Shipment {
 }
 
 export type ShipmentFormOptions = {
-  branches: Array<{ id: string; code: string; name: string; city: string; country: string }>;
+  locations: Array<{
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    dockDoors: number;
+  }>;
   drivers: Array<{ id: string; name: string; email: string }>;
   customers: Array<{ id: string; name: string; email: string }>;
 };
@@ -116,8 +123,8 @@ export async function updateDriverAvailabilityByEmail(
 }
 
 export type CreateShipmentInput = {
-  originBranchId: string;
-  destinationBranchId: string;
+  originFacilityId: string;
+  destinationFacilityId: string;
   customerId: string;
   driverId?: string | null;
   notes?: string;
@@ -129,56 +136,72 @@ export type CreateShipmentResult =
   | { kind: "invalid"; message: string };
 
 export async function getShipmentFormOptions(): Promise<ShipmentFormOptions> {
-  const [branches, drivers, customers] = await Promise.all([
-    prisma.branch.findMany({
-      where: { isActive: true },
-      orderBy: [{ country: "asc" }, { city: "asc" }],
-      select: { id: true, code: true, name: true, city: true, country: true },
+  const [facilities, directoryUsers] = await Promise.all([
+    prisma.kaggleFacility.findMany({
+      orderBy: [{ state: "asc" }, { city: "asc" }, { facilityName: "asc" }],
+      select: {
+        facilityId: true,
+        facilityName: true,
+        city: true,
+        state: true,
+        dockDoors: true,
+      },
     }),
-    prisma.user.findMany({
-      where: { role: "DRIVER" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true },
-    }),
-    prisma.user.findMany({
-      where: { role: "CUSTOMER" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true },
-    }),
+    syncAuthentikDirectoryUsers(),
   ]);
 
-  return { branches, drivers, customers };
+  return {
+    locations: facilities.map((facility) => ({
+      id: facility.facilityId,
+      name: facility.facilityName,
+      city: facility.city,
+      state: facility.state,
+      dockDoors: facility.dockDoors,
+    })),
+    drivers: directoryUsers
+      .filter((user) => user.role === "DRIVER")
+      .map((user) => ({ id: user.id, name: user.name, email: user.email })),
+    customers: directoryUsers
+      .filter((user) => user.role === "CUSTOMER")
+      .map((user) => ({ id: user.id, name: user.name, email: user.email })),
+  };
 }
 
 export async function createShipment(input: CreateShipmentInput): Promise<CreateShipmentResult> {
-  const [originBranch, destinationBranch, customer, driver] = await Promise.all([
-    prisma.branch.findFirst({ where: { id: input.originBranchId, isActive: true } }),
-    prisma.branch.findFirst({ where: { id: input.destinationBranchId, isActive: true } }),
+  const [originLocation, destinationLocation, customer, driver] = await Promise.all([
+    prisma.kaggleFacility.findUnique({ where: { facilityId: input.originFacilityId } }),
+    prisma.kaggleFacility.findUnique({ where: { facilityId: input.destinationFacilityId } }),
     prisma.user.findFirst({ where: { id: input.customerId, role: "CUSTOMER" } }),
     input.driverId
       ? prisma.user.findFirst({ where: { id: input.driverId, role: "DRIVER" } })
       : Promise.resolve(null),
   ]);
 
-  if (!originBranch) return { kind: "invalid", message: "Select a valid origin branch" };
-  if (!destinationBranch) return { kind: "invalid", message: "Select a valid destination branch" };
-  if (originBranch.id === destinationBranch.id) {
-    return { kind: "invalid", message: "Origin and destination must be different branches" };
+  if (!originLocation) return { kind: "invalid", message: "Select a valid origin storage location" };
+  if (!destinationLocation) return { kind: "invalid", message: "Select a valid destination storage location" };
+  if (originLocation.facilityId === destinationLocation.facilityId) {
+    return { kind: "invalid", message: "Origin and destination must be different storage locations" };
   }
   if (!customer) return { kind: "invalid", message: "Select a valid customer" };
   if (input.driverId && !driver) return { kind: "invalid", message: "Select a valid driver" };
 
   const trackingCode = `FF-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase()}`;
   const notes = input.notes?.trim() || null;
+  const origin = `${originLocation.city}, ${originLocation.state}`;
+  const destination = `${destinationLocation.city}, ${destinationLocation.state}`;
 
   const record = await prisma.$transaction(async (transaction) => {
     const shipment = await transaction.shipment.create({
       data: {
         trackingCode,
-        origin: originBranch.city,
-        destination: destinationBranch.city,
-        originBranchId: originBranch.id,
-        destinationBranchId: destinationBranch.id,
+        origin,
+        destination,
+        originLatitude: originLocation.latitude,
+        originLongitude: originLocation.longitude,
+        destinationLatitude: destinationLocation.latitude,
+        destinationLongitude: destinationLocation.longitude,
+        originFacilityId: originLocation.facilityId,
+        destinationFacilityId: destinationLocation.facilityId,
         customerId: customer.id,
         driverId: driver?.id ?? null,
         assignmentStatus: driver ? "PENDING" : "ACCEPTED",
@@ -193,7 +216,7 @@ export async function createShipment(input: CreateShipmentInput): Promise<Create
         shipmentId: shipment.id,
         status: "PENDING",
         actorEmail: input.actorEmail,
-        description: `Shipment created with route ${originBranch.city} to ${destinationBranch.city}`,
+        description: `Shipment created from ${originLocation.facilityName} to ${destinationLocation.facilityName}`,
       },
     });
 
