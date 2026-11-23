@@ -1815,3 +1815,119 @@ textarea:focus-visible,
   .mapcn-live-map { height: 300px; min-height: 300px; }
   .live-tracking-panel.is-overview .mapcn-live-map { height: 258px; min-height: 258px; }
 }
+
+.table-action-control {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.table-action-button {
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.payment-action-notice {
+  color: var(--ff-accent-strong);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.payment-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid #d7e5db;
+  border-radius: 999px;
+  background: #f4f8f5;
+  color: #4f6658;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.payment-status.is-paid {
+  border-color: #b9e4cc;
+  background: #e7f7ee;
+  color: #157449;
+}
+
+.payment-status.is-partial,
+.payment-status.is-recorded {
+  border-color: #f0d7a8;
+  background: #fff8e8;
+  color: #8a5a09;
+}
+
+.payment-status.is-unpaid {
+  border-color: #efc8c5;
+  background: #fff3f2;
+  color: #a1433d;
+}
+
+.payment-modal {
+  max-width: 560px;
+}
+
+@media (max-width: 760px) {
+  .payments-page .summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+.sales-receivables-strip {
+  margin: 16px 0 0;
+}
+
+.sales-balance-list {
+  display: grid;
+  gap: 8px;
+}
+
+.sales-balance-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e3ede7;
+}
+
+.sales-balance-list article:last-child {
+  border-bottom: 0;
+}
+
+.sales-balance-list article div {
+  min-width: 0;
+}
+
+.sales-balance-list article strong,
+.sales-balance-list article small {
+  display: block;
+}
+
+.sales-balance-list article strong {
+  color: var(--ff-text);
+  font-size: 11px;
+}
+
+.sales-balance-list article small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--ff-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-balance-list article > span {
+  color: var(--ff-accent-strong);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  white-space: nowrap;
+}

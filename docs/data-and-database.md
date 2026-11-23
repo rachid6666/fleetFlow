@@ -35,19 +35,40 @@ Operational pages use server-side Prisma queries from [`../src/lib/data.ts`](../
 | `/admin` | `loads`, `trips`, `drivers`, `trucks`, `delivery_events`, `safety_incidents` | Admin-only; live load revenue, distance, active fleet, delivery performance, and recent loads |
 | `/admin` live GPS panel | `Shipment`, `ShipmentLocationPing`, related `User` | Admin-only; latest position, route trail, ETA, progress, and stale-feed state |
 | `/admin/copilot` | Server-built aggregate snapshot from FleetFlow and Kaggle tables | Admin-only; grounded AI answers through local Ollama with a rules fallback |
-| `/admin/shipments` | `Shipment`, `facilities`, synchronized Authentik `User` projections | CEO-only; live shipments, U.S. storage locations, drivers, and customers |
+| `/admin/shipments` | `Shipment`, `facilities`, synchronized Authentik `User` projections | Admin-only; live shipments, U.S. storage locations, drivers, customers, charges, and ETAs |
+| `/admin/payments` | `Shipment`, `ShipmentPayment`, related customer `User` | Admin-only; charges, collected totals, outstanding balances, and payment recording |
+| `/sales` | `Shipment`, `ShipmentPayment`, facilities, Kaggle operations data, live pings | Sales-only; shipment creation, sales/receivables summary, live tracking, and alerts |
 | `/driver` | `Shipment`, signed-in driver `User` | Driver-only; shipments assigned to the signed-in account email; no full driver directory |
 | `/customer` | `Shipment`, related customer `User`, `StatusLog` | Customer-only; own shipments and customer-safe timelines with internal notes and driver details omitted |
 | `/track` | None | Compatibility redirect to `/customer` |
 | `GET /api/health` | PostgreSQL `SELECT 1` | Reports `503` if the database cannot be reached |
-| `GET /api/shipments` | `Shipment`, related `User` records | Requires a session; admins see all, drivers see assignments, and customers see own safe views |
-| `GET /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires a session; returns any shipment to admins, assigned shipments to drivers, and own shipments to customers |
+| `GET /api/shipments` | `Shipment`, related `User` records | Requires a session; admins and Sales users see all, drivers see assignments, and customers see own safe views |
+| `POST /api/shipments` | `Shipment`, `StatusLog`, `ShipmentLocationPing` | Admin or Sales; Sales cannot assign a driver |
+| `GET /api/shipments/form-options` | `facilities`, synchronized Authentik identities | Admin or Sales |
+| `GET /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires a session; admins and Sales see any shipment, drivers see assignments, and customers see own shipments |
 | `PATCH /api/shipments/:trackingCode` | `Shipment`, `StatusLog` | Requires an admin or assigned driver; status update and audit event are one transaction |
-| `GET /api/tracking/live` | `Shipment`, `ShipmentLocationPing` | Admin-only live fleet map data |
+| `GET /api/tracking/live` | `Shipment`, `ShipmentLocationPing` | Admin or Sales live fleet map data |
 | `POST /api/tracking/pings` | `Shipment`, `ShipmentLocationPing` | Admin or assigned driver; appends GPS telemetry without changing shipment status |
+| `POST /api/payments` | `Shipment`, `ShipmentPayment` | Admin-only append-only payment receipt |
 | `POST /api/copilot` | Aggregated operational snapshot | Admin-only AI operations question |
 
-FleetFlow's operational records are stored in `User`, `Shipment`, `StatusLog`, and `ShipmentLocationPing`. Shipment origins and destinations reference the imported U.S. `facilities` table. The local `User` rows for drivers and customers are identity projections synchronized from Authentik; they preserve the relations and audit fields FleetFlow needs without duplicating the Authentik source of truth. `npm run db:seed` syncs those identities and reports the available facilities. It does not create demo branches, users, shipments, or GPS pings.
+FleetFlow's operational records are stored in `User`, `Shipment`, `StatusLog`, `ShipmentLocationPing`, and `ShipmentPayment`. Shipment origins and destinations reference the imported U.S. `facilities` table. The local `User` rows for drivers and customers are identity projections synchronized from Authentik; Sales identities remain Authentik-backed and do not require a local shipment relation. `npm run db:seed` syncs driver/customer projections and reports the available facilities.
+
+New shipments store an initial `ShipmentLocationPing` at the origin. The live tracking query also includes facility-based shipments without pings, placing undelivered records at their origin and delivered records at their destination. `npm run db:seed:tracking` is an explicit optional command that refreshes seven marked synthetic `FF-LIVE-*` shipments and 118 GPS pings. It does not create legacy branches or placeholder identities.
+
+## Shipment payment ledger
+
+`Shipment.chargeAmount` is nullable for backward compatibility and stores the shipment's quoted amount in USD. `ShipmentPayment` is append-only:
+
+- `shipmentId` links the receipt to one shipment.
+- `amount` uses `DECIMAL(12,2)`.
+- `currency` currently defaults to `USD`.
+- `method` is `CASH`, `BANK_TRANSFER`, `CARD`, or `OTHER`.
+- `reference` stores an optional external receipt or transfer reference.
+- `receivedAt` records when payment was received.
+- `recordedByEmail` identifies the admin who entered the ledger record.
+
+The API derives payment state from the quoted charge and sum of receipts. It prevents overpayment when a charge is set and records external payments only. A processor integration, refunds, write-offs, and invoicing are not implemented.
 
 ## Kaggle logistics dataset
 

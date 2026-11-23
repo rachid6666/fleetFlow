@@ -6,15 +6,19 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { AppRole } from "@/lib/roles";
 
-type NavigationIconName = "overview" | "analytics" | "copilot" | "shipments" | "drivers";
+type NavigationIconName = "overview" | "analytics" | "copilot" | "shipments" | "payments" | "drivers";
 
 const roleLinks: Record<AppRole, Array<{ href: Route; label: string; icon: NavigationIconName }>> = {
   ADMIN: [
     { href: "/admin" as Route, label: "Overview", icon: "overview" },
     { href: "/admin/analytics" as Route, label: "Analytics", icon: "analytics" },
     { href: "/admin/shipments" as Route, label: "Shipments", icon: "shipments" },
+    { href: "/admin/payments" as Route, label: "Payments", icon: "payments" },
     { href: "/admin/drivers" as Route, label: "Driver group", icon: "drivers" },
     { href: "/admin/copilot" as Route, label: "AI copilot", icon: "copilot" },
+  ],
+  SALES: [
+    { href: "/sales" as Route, label: "Sales dashboard", icon: "analytics" },
   ],
   DRIVER: [
     { href: "/driver" as Route, label: "My trips", icon: "shipments" },
@@ -45,6 +49,9 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
   }
   if (name === "shipments") {
     return <svg {...common}><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5ZM3 7.5V16l9 5 9-5V7.5M12 12v9" /></svg>;
+  }
+  if (name === "payments") {
+    return <svg {...common}><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 9h19M6 15h4" /></svg>;
   }
   if (name === "drivers") {
     return <svg {...common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>;

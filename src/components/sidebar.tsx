@@ -7,7 +7,7 @@ export async function Sidebar() {
   const session = await auth();
   const role = session?.user?.role ?? null;
   const workspace = role ? workspaceLabelForRole(role) : "FleetFlow access";
-  const initials = role === "ADMIN" ? "CEO" : role ? role.slice(0, 2) : "FF";
+  const initials = role === "ADMIN" ? "CEO" : role === "SALES" ? "SL" : role ? role.slice(0, 2) : "FF";
 
   return (
     <aside className="sidebar" aria-label="FleetFlow workspace">

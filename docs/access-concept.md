@@ -4,9 +4,10 @@
 
 FleetFlow uses the Authentik role claim to route each signed-in user to one workspace:
 
-- **Admin** ? `/admin`
-- **Driver** ? `/driver`
-- **Customer** ? `/customer`
+- **Admin** -> `/admin`
+- **Sales** -> `/sales`
+- **Driver** -> `/driver`
+- **Customer** -> `/customer`
 
 Visiting another role's workspace redirects the user to their own workspace. Signed-out users are redirected to `/login`. The old `/track` route redirects to the authenticated customer workspace.
 
@@ -15,6 +16,10 @@ Visiting another role's workspace redirects the user to their own workspace. Sig
 ### Admin
 
 Admins can view every shipment, driver availability, operational analytics, live GPS data, handover records, and the AI operations copilot.
+
+### Sales
+
+Sales users can view all operational shipments, the sales and operations dashboard, live fleet tracking, shipment alerts, receivables, and customer balances. They can create customer shipments from Neon facilities. Their creation payload must not assign a driver, and the server rejects a driver ID from a Sales session. Sales users cannot update shipment status, access driver administration, use the copilot, write payment records, or issue Superset tokens.
 
 ### Driver
 
@@ -33,6 +38,8 @@ Authorization is enforced in the server query, not by a client-side filter:
 - Page routes check the role on the server.
 - `src/middleware.ts` redirects users who open another role's workspace.
 - `src/app/admin/layout.tsx` independently verifies the admin role.
+- `src/app/sales/layout.tsx` independently verifies the Sales role.
+- Sales shipment creation rejects driver assignment and payment writes remain admin-only.
 - Driver queries filter by the signed-in driver email.
 - Customer queries filter by the signed-in customer email.
 - The shipment-detail API uses `getShipmentForActor`, which applies the role-specific `where` clause.
@@ -40,17 +47,20 @@ Authorization is enforced in the server query, not by a client-side filter:
 
 ## Endpoint behavior
 
-| Endpoint | Admin | Driver | Customer |
-|---|---|---|---|
-| `GET /api/shipments` | All shipments | Assigned shipments | Own safe shipment views |
-| `GET /api/customer/shipments/export` | `403` | `403` | Own matching shipments as CSV |
-| `GET /api/shipments/:trackingCode` | Any shipment | Assigned shipment | Own shipment only; otherwise `404` |
-| `PATCH /api/shipments/:trackingCode` | Allowed | Assigned and accepted only | `403` |
-| Notes and delivery proof | Allowed | Assigned and accepted only | `403` |
-| `GET /api/tracking/live` | Allowed | `403` | `403` |
-| `POST /api/tracking/pings` | Allowed | Assigned shipment only | `403` |
-| `POST /api/copilot` | Allowed | `403` | `403` |
-| Superset analytics | Allowed | `403` | `403` |
+| Endpoint | Admin | Sales | Driver | Customer |
+|---|---|---|---|---|
+| `GET /api/shipments` | All shipments | All shipments | Assigned shipments | Own safe shipment views |
+| `POST /api/shipments` | Allowed | Allowed without driver assignment | `403` | `403` |
+| `GET /api/shipments/form-options` | Allowed | Allowed | `403` | `403` |
+| `GET /api/customer/shipments/export` | `403` | `403` | `403` | Own matching shipments as CSV |
+| `GET /api/shipments/:trackingCode` | Any shipment | Any shipment | Assigned shipment | Own shipment only; otherwise `404` |
+| `PATCH /api/shipments/:trackingCode` | Allowed | `403` | Assigned and accepted only | `403` |
+| Notes and delivery proof | Allowed | `403` | Assigned and accepted only | `403` |
+| `GET /api/tracking/live` | Allowed | Allowed | `403` | `403` |
+| `POST /api/tracking/pings` | Allowed | `403` | Assigned shipment only | `403` |
+| `POST /api/payments` | Allowed | `403` | `403` | `403` |
+| `POST /api/copilot` | Allowed | `403` | `403` | `403` |
+| Superset analytics | Allowed | `403` | `403` | `403` |
 
 Missing sessions return `401`. Accessing another account's record returns `404` where exposing its existence would be unnecessary.
 
@@ -69,9 +79,12 @@ npm run build
 
 Identity and access checks confirm:
 
-- the shipment form receives only active members of the Authentik Drivers and Customers groups;
-- customer queries are filtered by the signed-in Authentik email;
-- driver queries are filtered by the assigned synchronized identity;
-- customer results omit internal notes and driver details;
-- unauthenticated shipment APIs return `401`;
-- `/track` sends signed-out users to `/login`.
+- the shipment form receives only active members of the Authentik Drivers and Customers groups
+- customer queries are filtered by the signed-in Authentik email
+- driver queries are filtered by the assigned synchronized identity
+- customer results omit internal notes and driver details
+- unauthenticated shipment APIs return `401`
+- `/track` sends signed-out users to `/login`
+- Sales sessions reach `/sales` and can load live tracking and shipment form options
+- Sales can create a shipment with `201` but cannot assign a driver or record a payment
+- newly created shipments appear in live tracking at their origin

@@ -85,6 +85,7 @@ AUTHENTIK_ISSUER=https://authentik.example.com/application/o/fleetflow/
 AUTHENTIK_ID=<client-id>
 AUTHENTIK_SECRET=<client-secret>
 AUTHENTIK_ADMIN_GROUP=FleetFlow Admins
+AUTHENTIK_SALES_GROUP=FleetFlow Sales
 AUTHENTIK_DRIVER_GROUP=FleetFlow Drivers
 AUTHENTIK_CUSTOMER_GROUP=FleetFlow Customers
 AUTHENTIK_DB_HOST=<pooled-authentik-host>
@@ -101,15 +102,22 @@ If `groups` is not present in the ID token or UserInfo response, add an Authenti
 
 ## Role mapping
 
-- Member of `AUTHENTIK_ADMIN_GROUP` → `ADMIN`
-- Member of `AUTHENTIK_DRIVER_GROUP` → `DRIVER`
-- Any other authenticated user → `CUSTOMER`
+- Member of `AUTHENTIK_ADMIN_GROUP` -> `ADMIN`
+- Member of `AUTHENTIK_SALES_GROUP` -> `SALES`
+- Member of `AUTHENTIK_DRIVER_GROUP` -> `DRIVER`
+- Any other authenticated user -> `CUSTOMER`
 
-After sign-in, `/workspace` redirects `ADMIN` to `/admin`, `DRIVER` to `/driver`, and `CUSTOMER` to `/customer`. Each workspace is restricted to its matching role, and customers can view only shipments linked to their Authentik email.
+Role precedence is admin, Sales, driver, then customer. After sign-in, `/workspace` redirects `ADMIN` to `/admin`, `SALES` to `/sales`, `DRIVER` to `/driver`, and `CUSTOMER` to `/customer`. Each workspace is restricted to its matching role.
+
+Sales users are application-only external Authentik users. They can view live operations and receivables, and create customer shipments. Their API session cannot assign a driver or record payments. The Sales group does not need a FleetFlow `User` projection because Sales records carry the Auth.js session email and do not own shipments.
+
+Administrators and application users should be external Authentik users when they should bypass the Authentik user library. Internal users such as `akadmin` retain Authentik administration access. Set the default brand's **Default application** to the FleetFlow application and use the application launch URL `http://localhost:3000/login?auto=1` locally so OIDC users return directly to FleetFlow.
 
 ## Production notes
 
 - Use HTTPS for the deployed callback URL.
 - Keep `AUTHENTIK_SECRET` and `AUTH_SECRET` outside Git.
 - Confirm the Authentik proxy/firewall allows server-to-server access to the discovery and JWKS endpoints.
-- Active members of the FleetFlow Drivers and FleetFlow Customers groups are synchronized into FleetFlow's Prisma `User` table as identity projections. The synchronization runs when shipment form options are requested and through `npm run db:seed`; shipment relations still use FleetFlow's local user IDs while names, emails, and roles come from Authentik.
+- Active members of the FleetFlow Drivers and FleetFlow Customers groups are synchronized into FleetFlow's Prisma `User` table as identity projections. The synchronization runs when shipment form options are requested and through `npm run db:seed`. Shipment relations still use FleetFlow's local user IDs while names, emails, and roles come from Authentik.
+- Sales users remain in Authentik's FleetFlow Sales group and are authorized through their session group claim.
+- Application-only users should use externally typed Authentik accounts. Keep `akadmin` internal for Authentik system administration.

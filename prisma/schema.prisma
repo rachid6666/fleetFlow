@@ -25,6 +25,13 @@ enum AssignmentStatus {
   REJECTED
 }
 
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
 enum ShipmentStatus {
   PENDING
   DISPATCHED
@@ -88,6 +95,7 @@ model Shipment {
   destinationFacilityId String?
   destinationFacility   KaggleFacility?        @relation("DestinationFacility", fields: [destinationFacilityId], references: [facilityId])
   status                ShipmentStatus         @default(PENDING)
+  chargeAmount          Decimal?               @db.Decimal(12, 2)
   notes                 String?
   driverId              String?
   driver                User?                  @relation("DriverShipments", fields: [driverId], references: [id])
@@ -97,6 +105,7 @@ model Shipment {
   updates               StatusLog[]
   locationPings         ShipmentLocationPing[]
   deliveryProofs        DeliveryProof[]
+  payments              ShipmentPayment[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -107,6 +116,22 @@ model Shipment {
   @@index([destinationBranchId])
   @@index([originFacilityId])
   @@index([destinationFacilityId])
+}
+
+model ShipmentPayment {
+  id               String        @id @default(cuid())
+  shipmentId       String
+  shipment         Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  amount           Decimal       @db.Decimal(12, 2)
+  currency         String        @default("USD")
+  method           PaymentMethod
+  reference        String?
+  receivedAt       DateTime      @default(now())
+  recordedByEmail  String
+  createdAt        DateTime      @default(now())
+
+  @@index([shipmentId, receivedAt])
+  @@index([receivedAt])
 }
 
 model DeliveryProof {

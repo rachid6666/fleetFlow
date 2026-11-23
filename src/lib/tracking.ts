@@ -37,7 +37,15 @@ function toPoint(ping: { latitude: unknown; longitude: unknown; speedMph: unknow
 
 export async function getLiveTrackingData(): Promise<LiveTrackingData> {
   const records = await prisma.shipment.findMany({
-    where: { locationPings: { some: {} } },
+    where: {
+      OR: [
+        { locationPings: { some: {} } },
+        {
+          originFacilityId: { not: null },
+          destinationFacilityId: { not: null },
+        },
+      ],
+    },
     include: {
       driver: { select: { name: true } },
       customer: { select: { name: true } },
@@ -47,25 +55,37 @@ export async function getLiveTrackingData(): Promise<LiveTrackingData> {
   });
 
   const shipments: LiveShipment[] = records
-    .filter((record) => record.locationPings.length > 0)
     .map((record) => {
       const trail = record.locationPings.map(toPoint);
-      const latestPoint = trail[trail.length - 1];
       const origin = record.originLatitude != null && record.originLongitude != null
         ? { latitude: Number(record.originLatitude), longitude: Number(record.originLongitude) }
         : null;
       const destination = record.destinationLatitude != null && record.destinationLongitude != null
         ? { latitude: Number(record.destinationLatitude), longitude: Number(record.destinationLongitude) }
         : null;
+      const fallbackCoordinates = record.status === "DELIVERED" ? destination : origin;
+      const fallbackPoint: TrackingPoint | null = fallbackCoordinates
+        ? {
+            latitude: fallbackCoordinates.latitude,
+            longitude: fallbackCoordinates.longitude,
+            speedMph: 0,
+            headingDegrees: null,
+            recordedAt: record.updatedAt.toISOString(),
+          }
+        : null;
+      const latestPoint = trail[trail.length - 1] ?? fallbackPoint;
+      if (!latestPoint) return null;
+
       const totalDistance = origin && destination ? milesBetween(origin, destination) : 0;
       const remainingDistance = destination ? milesBetween(latestPoint, destination) : 0;
       const progressPercent = record.status === "DELIVERED" ? 100 : destination && totalDistance > 0 ? Math.max(0, Math.min(99, Math.round((1 - remainingDistance / totalDistance) * 100))) : 0;
       const minutesSincePing = Math.max(0, Math.floor((Date.now() - new Date(latestPoint.recordedAt).getTime()) / 60_000));
+      const hasTelemetry = record.locationPings.length > 0;
       const attention = record.status === "DELIVERED"
         ? "completed"
         : record.status === "EXCEPTION"
           ? "exception"
-          : minutesSincePing > 30
+          : hasTelemetry && minutesSincePing > 30
             ? "stale"
             : "on-track";
 
@@ -87,8 +107,9 @@ export async function getLiveTrackingData(): Promise<LiveTrackingData> {
         eta: etaLabel(record.status, record.estimatedArrival),
         minutesSincePing,
         attention,
-      };
-    });
+      } satisfies LiveShipment;
+    })
+    .filter((shipment): shipment is LiveShipment => shipment !== null);
 
   return {
     shipments,

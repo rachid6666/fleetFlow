@@ -64,6 +64,24 @@ GitHub sends the push or pull-request body and `x-github-event`; the workflow no
 
 ## n8n import and credentials
 
-Import `workflows/fleetflow-handover.json` and `workflows/fleetflow-team-activity.json` from the n8n UI (`Workflows` → `Import from File`). In the local n8n container, set `FLEETFLOW_API_URL=http://app:3000`, `N8N_WEBHOOK_SECRET` to the matching local `.env` value, and optionally `TEAM_NOTIFICATION_WEBHOOK_URL`. These are n8n environment variables, not embedded workflow credentials. Do not paste secrets into exported JSON or commit n8n's `.n8n` data volume.
+Import `workflows/fleetflow-handover.json` and `workflows/fleetflow-team-activity.json` from the n8n UI (`Workflows` -> `Import from File`). The exported files retain `active: false` so importing does not activate webhooks silently. Activate each workflow after import and verify it appears under both `n8n list:workflow` and `n8n list:workflow --active=true`.
 
-Use each workflow's Test URL while testing and Production URL after activation. The Compose service names are `app` and `n8n`; PostgreSQL is the external Neon database, and `localhost` is for the host browser only.
+Set `N8N_WEBHOOK_SECRET` to the same value in the host app and n8n container. The FleetFlow URL depends on how Next.js runs:
+
+- Compose-hosted app and n8n use `FLEETFLOW_API_URL=http://app:3000`.
+- Host-run `npm run dev` with containerized n8n uses `FLEETFLOW_API_URL=http://host.docker.internal:3000`.
+- A host-run app posts to n8n with `FLEETFLOW_HANDOVER_WEBHOOK_URL=http://localhost:5678/webhook/fleetflow/shipment-handover`.
+- A Compose-hosted app posts to n8n with `FLEETFLOW_HANDOVER_WEBHOOK_URL=http://n8n:5678/webhook/fleetflow/shipment-handover`.
+
+`TEAM_NOTIFICATION_WEBHOOK_URL` is optional. When it is blank, the Team Activity workflow returns `200` with `{ ok: true, notified: false }` instead of failing.
+
+These are environment variables, not embedded workflow credentials. Do not paste secrets into exported JSON or commit n8n's `.n8n` data volume.
+
+Verification commands:
+
+```powershell
+docker exec no-codeproject-n8n-1 n8n list:workflow --active=true
+curl.exe -i http://localhost:5678/healthz
+```
+
+For the handover test, POST a temporary event to `/webhook/fleetflow/shipment-handover`. A first valid request returns `idempotent: false`, and repeating the same event returns `idempotent: true`. Remove temporary shipment and handover-event rows afterward.

@@ -20,7 +20,9 @@ services:
       SUPERSET_SERVER_URL: http://superset:8088
       SUPERSET_PUBLIC_URL: http://localhost:8088
       AUTHENTIK_ADMIN_GROUP: ${AUTHENTIK_ADMIN_GROUP:-FleetFlow Admins}
+      AUTHENTIK_SALES_GROUP: ${AUTHENTIK_SALES_GROUP:-FleetFlow Sales}
       AUTHENTIK_DRIVER_GROUP: ${AUTHENTIK_DRIVER_GROUP:-FleetFlow Drivers}
+      AUTHENTIK_CUSTOMER_GROUP: ${AUTHENTIK_CUSTOMER_GROUP:-FleetFlow Customers}
       FLEETFLOW_API_URL: ${FLEETFLOW_API_URL:-http://app:3000}
       FLEETFLOW_HANDOVER_WEBHOOK_URL: ${FLEETFLOW_HANDOVER_WEBHOOK_URL:-http://n8n:5678/webhook/fleetflow/shipment-handover}
       N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:-local-n8n-webhook-secret}
@@ -61,6 +63,8 @@ services:
       - fleetflow-n8n:/home/node/.n8n
     networks:
       - fleetflow
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:5678/healthz >/dev/null"]
       interval: 10s

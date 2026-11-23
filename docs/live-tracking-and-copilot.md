@@ -4,9 +4,11 @@
 
 `ShipmentLocationPing` stores latitude, longitude, speed, heading, source, and timestamp for a shipment. Shipment coordinates and `estimatedArrival` provide route progress and ETA context.
 
-No demo shipments or synthetic GPS trails are created by the seed. Real shipments are created from U.S. storage facilities in Neon, and telemetry enters through the tracking API or an approved integration.
+Shipment creation writes an initial origin ping. Facility-based shipments created before telemetry existed are also included by the live tracking query. An undelivered no-ping shipment is placed at its origin, and a delivered no-ping shipment is placed at its destination. These fallback positions do not count as stale GPS feeds.
 
-The admin overview polls `/api/tracking/live` every 10 seconds and renders the latest position, trail, progress, remaining miles, ETA, and stale-feed state.
+`npm run db:seed:tracking` explicitly refreshes seven `FF-LIVE-*` synthetic demonstration shipments and 118 GPS pings. The command is idempotent, updates only its fixed synthetic tracking codes, and deletes/recreates only pings whose source is `synthetic`. Real telemetry enters through the tracking API or an approved integration.
+
+The admin overview and Sales dashboard use `/api/tracking/live`, which is available to `ADMIN` and `SALES` sessions. The map renders latest position, trail, progress, remaining miles, ETA, and stale-feed state.
 
 ## GPS ingestion
 
@@ -24,7 +26,7 @@ The admin overview polls `/api/tracking/live` every 10 seconds and renders the l
 }
 ```
 
-Admins can add pings to any shipment. Drivers can add pings only to shipments assigned to their authenticated email. GPS writes do not mutate shipment status, so status and audit rules remain unchanged.
+Admins can add pings to any shipment. Drivers can add pings only to shipments assigned to their authenticated email. Sales and customer sessions cannot write GPS data. GPS writes do not mutate shipment status, so status and audit rules remain unchanged.
 
 ## AI operations copilot
 
@@ -49,4 +51,4 @@ npm run typecheck
 npm run db:verify:kaggle
 ```
 
-For local UI verification, start the app, open `/admin`, and confirm that the GPS map shows seven routes. Then open `/admin/copilot` and ask: `What needs immediate attention right now?`
+For local UI verification, start the app, run `npm run db:seed:tracking`, open `/admin`, and confirm that the live map shows the seven synthetic routes. Create a regular shipment and confirm it appears at its origin without waiting for telemetry. Sign in with a Sales account and confirm `/sales` can read the same live tracking API but cannot post GPS pings. Then open `/admin/copilot` as an admin and ask `What needs immediate attention right now?`

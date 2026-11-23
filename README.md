@@ -6,7 +6,8 @@ This repository now includes the first runnable product slice plus the implement
 
 ## Product scope
 
-- **Admin:** manage users and shipments, assign drivers, reassign work, and monitor operational metrics.
+- **CEO/Admin:** manage users and shipments, assign drivers, record payments, and monitor sales and operational metrics.
+- **Sales:** create customer shipments and view sales, receivables, live tracking, and operational exceptions without assigning drivers or recording payments.
 - **Driver:** use a mobile-first workflow to update status, add proof-of-delivery notes, and record exceptions.
 - **Customer / shipper:** view only their own shipments and customer-safe event timelines.
 
@@ -20,7 +21,7 @@ Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, PostgreSQL, Prisma ORM,
 docs/                         Product, architecture, roadmap, and AI prompts
 prisma/schema.prisma          Initial relational data model
 skills/fleetflow-build/       Reusable Codex skill for future FleetFlow work
-src/app/                      Admin, driver, and customer workspace screens
+src/app/                      Admin, sales, driver, and customer workspace screens
 src/lib/                      Prisma data access and domain types
 .env.example                  Required environment variables
 CONTRIBUTING.md               Development and delivery conventions
@@ -28,8 +29,9 @@ CONTRIBUTING.md               Development and delivery conventions
 
 ## Current data model
 
-The application reads shipments from PostgreSQL through Prisma. Sign-in routes users to their role workspace from Authentik group claims. Shipment status changes are authenticated and persist an audit event in the same transaction. Customer responses omit internal notes, driver identities, and delivery-proof data.
-Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. Development demo shipments are not seeded. Shipment locations come from the U.S. `facilities` table in Neon, and active drivers/customers are synchronized from the separate Authentik database.
+The application reads shipments from PostgreSQL through Prisma. Auth.js maps Authentik groups to admin, sales, driver, and customer roles. Shipment status changes are authenticated and persist an audit event in the same transaction. Customer responses omit internal notes, driver identities, and delivery-proof data.
+Live tracking stores append-only `ShipmentLocationPing` records and derives route progress and ETA from shipment coordinates. New shipments receive an initial origin ping. Facility-based shipments created before telemetry existed are still displayed at their origin, or at the destination when delivered. Shipment locations come from the U.S. `facilities` table in Neon, and active drivers/customers are synchronized from the separate Authentik database.
+The payment ledger stores an optional shipment charge and append-only `ShipmentPayment` records. Admins can record cash, bank transfer, card, or other externally received payments. Sales can view receivables but cannot mutate the ledger. `npm run db:seed:tracking` optionally refreshes seven clearly marked synthetic live routes for demonstrations.
 
 The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. This preserves its source entities and relationships without creating synthetic Auth.js accounts or converting historical loads into mutable FleetFlow shipments.
 
@@ -48,12 +50,14 @@ The Kaggle trucking dataset is stored separately in 14 typed `Kaggle*` tables. T
 
 ## Product screens
 
-- `/admin` — operational metrics, live GPS map, recent shipments, and exception/stale-feed alerts
-- `/admin/copilot` — admin-only AI operations copilot grounded in live and historical logistics data
-- `/admin/shipments` — shipment desk with routes, statuses, drivers, customers, and ETAs
-- `/driver` — mobile-oriented assigned shipment workflow with status actions
-- `/customer` ? authenticated customer workspace containing only the signed-in customer?s shipments
-- `/workspace` ? role-aware post-login redirect for admin, driver, and customer users
+- `/admin` - operational metrics, live GPS map, recent shipments, and exception/stale-feed alerts
+- `/admin/copilot` - admin-only AI operations copilot grounded in live and historical logistics data
+- `/admin/shipments` - shipment desk with routes, statuses, drivers, customers, charges, and ETAs
+- `/admin/payments` - admin payment ledger with charges, collected totals, balances, and payment recording
+- `/sales` - sales and operations dashboard with customer shipment creation, live tracking, alerts, and read-only receivables
+- `/driver` - mobile-oriented assigned shipment workflow with status actions
+- `/customer` - authenticated customer workspace containing only the signed-in customer's shipments
+- `/workspace` - role-aware post-login redirect for admin, sales, driver, and customer users
 
 Authentication is prepared for Authentik OIDC through Auth.js. See [`docs/authentik.md`](docs/authentik.md) for provider setup and callback URLs.
 
@@ -95,7 +99,10 @@ Host-side Prisma commands use the same root `.env` values:
 npm run db:validate
 npm run db:deploy
 npm run db:seed
+npm run db:seed:tracking
 ```
+
+`db:seed` synchronizes Authentik driver/customer projections and verifies facilities. `db:seed:tracking` is optional and adds or refreshes the seven synthetic `FF-LIVE-*` demonstration routes.
 
 ## n8n workflows
 
@@ -104,7 +111,7 @@ Import both files in n8n from `Workflows` → `Import from File`:
 - `workflows/fleetflow-handover.json` receives the server-side handover event and calls the protected FleetFlow integration endpoint.
 - `workflows/fleetflow-team-activity.json` handles explicit `START_TASK` events plus GitHub push and pull-request events.
 
-Configure `FLEETFLOW_API_URL`, `N8N_WEBHOOK_SECRET`, and optional `TEAM_NOTIFICATION_WEBHOOK_URL` in the local n8n environment. The handover workflow uses `http://app:3000` inside Compose; do not change it to `localhost`. Create any provider-specific notification credential in your own n8n instance and keep it out of exports. See [`docs/handover.md`](docs/handover.md) for payloads, validation, idempotency, role access, and error responses.
+Set `N8N_WEBHOOK_SECRET` to the same value in the FleetFlow environment and n8n container. Use `FLEETFLOW_API_URL=http://app:3000` when FleetFlow and n8n both run in Compose. For host-run `npm run dev`, use `FLEETFLOW_API_URL=http://host.docker.internal:3000`. The host app should call n8n at `http://localhost:5678`, while a Compose-hosted app uses `http://n8n:5678`. `TEAM_NOTIFICATION_WEBHOOK_URL` is optional and returns `notified:false` when blank. See [`docs/handover.md`](docs/handover.md) for activation, payloads, validation, idempotency, role access, and error responses.
 
 GitHub cannot see uncommitted local work, so use an explicit `START_TASK` webhook action when work begins. A GitHub organization webhook needs a reachable shared n8n URL; a teammate's local n8n is not a team-wide callback target.
 
@@ -123,7 +130,7 @@ npm run db:import:kaggle -- --source "C:\path\to\logistics-operations-database"
 
 The importer maps all 14 CSV files into typed relational tables (`customers`, `drivers`, `loads`, `trips`, `delivery_events`, and related tables), with primary keys and foreign-key relations matching the dataset schema. It imports parent tables before dependent records, preserves optional foreign keys as nullable relations, and skips existing keys when re-run. The admin overview fetches logistics metrics and recent joined loads directly from Neon. Use `npm run db:verify:kaggle` to check imported row totals and relational constraints.
 
-Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection. `/api/shipments` requires a session and returns all shipments for admins, assigned shipments for drivers, and customer-safe shipments for customers. `/api/shipments/:trackingCode` requires a session and enforces role ownership.
+Open [http://localhost:3000](http://localhost:3000). `/api/health` checks the database connection. `/api/shipments` requires a session and returns all shipments to admins and sales users, assigned shipments to drivers, and customer-safe shipments to customers. Admins and sales users can create customer shipments. Sales users cannot assign drivers. `/api/payments` requires an admin session. `/api/tracking/live` is available to admins and sales users.
 
 The admin overview flags shipments marked `EXCEPTION` and shipments still `IN_TRANSIT` with no update for at least 24 hours. The stale-update threshold is a monitoring signal, not an ETA-based late-delivery prediction; live shipments do not currently store an ETA.
 

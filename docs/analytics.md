@@ -23,7 +23,7 @@ docker compose -f superset/compose.yml exec -T -e VERIFY_GUEST_ONLY=1 superset p
 
 For a host-run Next.js process, start it with `npm run dev` after setup; it uses `http://localhost:8088` for both server requests and browser embeds.
 
-Superset username is `fleetflow-admin`; its generated password is `SUPERSET_ADMIN_PASSWORD` in the ignored `superset/.env`. The separate embed service account only mints guest tokens. FleetFlow requires an ADMIN session to issue one. Credentials stay server-side.
+Superset username is `fleetflow-admin`; its generated password is `SUPERSET_ADMIN_PASSWORD` in the ignored `superset/.env`. The separate embed service account only mints guest tokens. FleetFlow requires an ADMIN session to issue one. Sales, driver, and customer sessions are denied. Credentials stay server-side.
 
 ```powershell
 docker compose -f superset/compose.yml logs --tail 80
@@ -51,6 +51,6 @@ All queries are versioned in `superset/datasets.json`. Database connections requ
 
 This Compose configuration uses SQLite for local Superset metadata. Production needs PostgreSQL metadata, HTTPS, managed secrets and a dedicated SELECT-only source account. `FLEETFLOW_ORIGIN` controls embedding allowlists and CSP; recreate the container after changing it. `NEXT_PUBLIC_SUPERSET_URL` must be browser accessible. The analytics embed ID is independent of the existing network-map ID.
 
-The SDK refreshes five-minute guest tokens. The dashboard refresh interval is five minutes. FleetFlow shows a retry state when unavailable; non-admin tokens are denied.
+The SDK refreshes five-minute guest tokens. The dashboard refresh interval is five minutes. FleetFlow shows a retry state when unavailable. Sales, driver, and customer tokens are denied.
 
 References: [Superset Docker deployment](https://superset.apache.org/docs/installation/docker-compose/) and [creating dashboards](https://superset.apache.org/docs/6.0.0/using-superset/creating-your-first-dashboard/).

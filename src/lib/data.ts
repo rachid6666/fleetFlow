@@ -1,4 +1,4 @@
-import { Prisma, type AssignmentStatus, type DriverAvailability, type ShipmentStatus } from "@prisma/client";
+import { Prisma, type AssignmentStatus, type DriverAvailability, type PaymentMethod, type ShipmentStatus } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { syncAuthentikDirectoryUsers } from "./authentik-directory";
 import { assertTransition } from "./shipment-rules";
@@ -127,6 +127,7 @@ export type CreateShipmentInput = {
   destinationFacilityId: string;
   customerId: string;
   driverId?: string | null;
+  chargeAmount?: number | null;
   notes?: string;
   actorEmail: string;
 };
@@ -164,6 +165,187 @@ export async function getShipmentFormOptions(): Promise<ShipmentFormOptions> {
     customers: directoryUsers
       .filter((user) => user.role === "CUSTOMER")
       .map((user) => ({ id: user.id, name: user.name, email: user.email })),
+  };
+}
+
+export type PaymentLedgerStatus = "PAID" | "PARTIAL" | "UNPAID" | "RECORDED" | "NO_CHARGE";
+
+export type PaymentLedgerItem = {
+  shipmentId: string;
+  trackingCode: string;
+  origin: string;
+  destination: string;
+  status: ShipmentStatus;
+  customerName: string;
+  chargeAmount: number | null;
+  collectedAmount: number;
+  balanceAmount: number | null;
+  paymentStatus: PaymentLedgerStatus;
+  lastPaymentAt: string | null;
+};
+
+export type PaymentLedger = {
+  items: PaymentLedgerItem[];
+  summary: {
+    totalCharged: number;
+    totalCollected: number;
+    totalOutstanding: number;
+    unpaidShipments: number;
+  };
+};
+
+function paymentStatusFor(charge: Prisma.Decimal | null, collected: Prisma.Decimal): PaymentLedgerStatus {
+  if (!charge) return collected.greaterThan(0) ? "RECORDED" : "NO_CHARGE";
+  if (collected.greaterThanOrEqualTo(charge)) return "PAID";
+  return collected.greaterThan(0) ? "PARTIAL" : "UNPAID";
+}
+
+export async function getPaymentLedger(): Promise<PaymentLedger> {
+  const records = await prisma.shipment.findMany({
+    include: {
+      customer: { select: { name: true } },
+      payments: {
+        orderBy: { receivedAt: "desc" },
+        select: { amount: true, receivedAt: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const items = records.map((record): PaymentLedgerItem => {
+    const collected = record.payments.reduce(
+      (sum, payment) => sum.plus(payment.amount),
+      new Prisma.Decimal(0),
+    );
+    const rawBalance = record.chargeAmount?.minus(collected) ?? null;
+    const balance = rawBalance?.lessThan(0) ? new Prisma.Decimal(0) : rawBalance;
+
+    return {
+      shipmentId: record.id,
+      trackingCode: record.trackingCode,
+      origin: record.origin,
+      destination: record.destination,
+      status: record.status,
+      customerName: record.customer.name,
+      chargeAmount: record.chargeAmount?.toNumber() ?? null,
+      collectedAmount: collected.toNumber(),
+      balanceAmount: balance?.toNumber() ?? null,
+      paymentStatus: paymentStatusFor(record.chargeAmount, collected),
+      lastPaymentAt: record.payments[0]?.receivedAt.toISOString() ?? null,
+    };
+  });
+
+  const totals = records.reduce(
+    (summary, record) => {
+      const collected = record.payments.reduce(
+        (sum, payment) => sum.plus(payment.amount),
+        new Prisma.Decimal(0),
+      );
+      const rawBalance = record.chargeAmount?.minus(collected) ?? null;
+      const balance = rawBalance?.greaterThan(0) ? rawBalance : new Prisma.Decimal(0);
+      const paymentStatus = paymentStatusFor(record.chargeAmount, collected);
+
+      return {
+        charged: summary.charged.plus(record.chargeAmount ?? 0),
+        collected: summary.collected.plus(collected),
+        outstanding: summary.outstanding.plus(balance),
+        unpaidShipments:
+          summary.unpaidShipments + (paymentStatus !== "PAID" && paymentStatus !== "NO_CHARGE" ? 1 : 0),
+      };
+    },
+    {
+      charged: new Prisma.Decimal(0),
+      collected: new Prisma.Decimal(0),
+      outstanding: new Prisma.Decimal(0),
+      unpaidShipments: 0,
+    },
+  );
+
+  return {
+    items,
+    summary: {
+      totalCharged: totals.charged.toNumber(),
+      totalCollected: totals.collected.toNumber(),
+      totalOutstanding: totals.outstanding.toNumber(),
+      unpaidShipments: totals.unpaidShipments,
+    },
+  };
+}
+
+export type RecordShipmentPaymentInput = {
+  shipmentId: string;
+  amount: number;
+  method: PaymentMethod;
+  reference?: string | null;
+  actorEmail: string;
+};
+
+export type RecordShipmentPaymentResult =
+  | {
+      kind: "created";
+      payment: {
+        id: string;
+        shipmentId: string;
+        amount: number;
+        currency: string;
+        method: PaymentMethod;
+        receivedAt: string;
+      };
+    }
+  | { kind: "not-found" }
+  | { kind: "invalid"; message: string };
+
+export async function recordShipmentPayment(
+  input: RecordShipmentPaymentInput,
+): Promise<RecordShipmentPaymentResult> {
+  const amount = new Prisma.Decimal(input.amount);
+  if (!amount.isPositive()) return { kind: "invalid", message: "Payment amount must be greater than zero" };
+
+  const shipment = await prisma.shipment.findUnique({
+    where: { id: input.shipmentId },
+    select: {
+      id: true,
+      chargeAmount: true,
+      payments: { select: { amount: true } },
+    },
+  });
+  if (!shipment) return { kind: "not-found" };
+
+  if (shipment.chargeAmount) {
+    const alreadyPaid = shipment.payments.reduce(
+      (sum, payment) => sum.plus(payment.amount),
+      new Prisma.Decimal(0),
+    );
+    const balance = shipment.chargeAmount.minus(alreadyPaid);
+    if (amount.greaterThan(balance)) {
+      return {
+        kind: "invalid",
+        message: `Payment exceeds the remaining balance of ${balance.toFixed(2)} USD`,
+      };
+    }
+  }
+
+  const payment = await prisma.shipmentPayment.create({
+    data: {
+      shipmentId: shipment.id,
+      amount,
+      currency: "USD",
+      method: input.method,
+      reference: input.reference?.trim() || null,
+      recordedByEmail: input.actorEmail,
+    },
+  });
+
+  return {
+    kind: "created",
+    payment: {
+      id: payment.id,
+      shipmentId: payment.shipmentId,
+      amount: payment.amount.toNumber(),
+      currency: payment.currency,
+      method: payment.method,
+      receivedAt: payment.receivedAt.toISOString(),
+    },
   };
 }
 
@@ -205,8 +387,19 @@ export async function createShipment(input: CreateShipmentInput): Promise<Create
         customerId: customer.id,
         driverId: driver?.id ?? null,
         assignmentStatus: driver ? "PENDING" : "ACCEPTED",
+        chargeAmount: input.chargeAmount == null ? null : new Prisma.Decimal(input.chargeAmount),
         notes,
         status: "PENDING",
+        locationPings: {
+          create: {
+            latitude: originLocation.latitude,
+            longitude: originLocation.longitude,
+            speedMph: 0,
+            headingDegrees: null,
+            recordedAt: new Date(),
+            source: "shipment-created",
+          },
+        },
       },
       include: shipmentInclude,
     });
@@ -221,7 +414,7 @@ export async function createShipment(input: CreateShipmentInput): Promise<Create
     });
 
     return shipment;
-  });
+  }, { maxWait: 10_000, timeout: 20_000 });
 
   return { kind: "created", shipment: toShipment(record) };
 }
@@ -626,7 +819,7 @@ export async function getShipmentForActor(
     trackingCode: { equals: code.trim(), mode: "insensitive" },
   };
 
-  if (actor.role !== "ADMIN") {
+  if (actor.role !== "ADMIN" && actor.role !== "SALES") {
     if (!actor.email) return undefined;
     if (actor.role === "CUSTOMER") {
       where.customer = { email: { equals: actor.email, mode: "insensitive" } };

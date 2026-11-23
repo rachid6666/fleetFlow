@@ -19,6 +19,7 @@
     "db:import:kaggle": "tsx prisma/import-kaggle.ts",
     "db:verify:kaggle": "tsx prisma/verify-kaggle.ts",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:tracking": "tsx prisma/seed-tracking.ts",
     "db:sync:reference": "tsx prisma/seed.ts"
   },
   "dependencies": {

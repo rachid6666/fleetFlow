@@ -21,10 +21,13 @@ export default auth((request) => {
   if ((pathname.startsWith("/customer") || pathname.startsWith("/track")) && user.role !== "CUSTOMER") {
     return NextResponse.redirect(new URL(workspace, request.url));
   }
+  if (pathname.startsWith("/sales") && user.role !== "SALES" && user.role !== "ADMIN") {
+    return NextResponse.redirect(new URL(workspace, request.url));
+  }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/workspace", "/admin/:path*", "/driver/:path*", "/customer/:path*", "/track"],
+  matcher: ["/workspace", "/admin/:path*", "/sales/:path*", "/driver/:path*", "/customer/:path*", "/track"],
 };

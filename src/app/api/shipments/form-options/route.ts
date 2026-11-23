@@ -9,8 +9,8 @@ export async function GET() {
   if (!session?.user) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "CEO access required" }, { status: 403 });
+  if (session.user.role !== "ADMIN" && session.user.role !== "SALES") {
+    return NextResponse.json({ error: "Administrator or sales access required" }, { status: 403 });
   }
 
   try {

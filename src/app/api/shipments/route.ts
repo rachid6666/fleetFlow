@@ -9,6 +9,7 @@ const createShipmentSchema = z
     destinationFacilityId: z.string().trim().min(1),
     customerId: z.string().trim().min(1),
     driverId: z.string().trim().min(1).nullable().optional(),
+    chargeAmount: z.number().finite().positive().max(100_000_000).optional(),
     notes: z.string().trim().max(2_000).optional(),
   })
   .strict()
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
-  if (user.role !== "ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "SALES") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (!user.email) {
@@ -65,9 +66,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (user.role === "SALES" && parsed.data.driverId) {
+    return NextResponse.json({ error: "Sales users cannot assign drivers" }, { status: 403 });
+  }
+
   const result = await createShipment({
     ...parsed.data,
-    driverId: parsed.data.driverId ?? null,
+    driverId: user.role === "SALES" ? null : parsed.data.driverId ?? null,
     actorEmail: user.email,
   });
 

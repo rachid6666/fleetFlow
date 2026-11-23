@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ShipmentFormOptions } from "@/lib/data";
 
-export function CreateShipmentButton({ options }: { options: ShipmentFormOptions }) {
+export function CreateShipmentButton({
+  options,
+  allowDriverAssignment = true,
+}: {
+  options: ShipmentFormOptions;
+  allowDriverAssignment?: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -102,6 +108,11 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
 
     const driverId = String(form.get("driverId") ?? "");
     const notes = String(form.get("notes") ?? "").trim();
+    const chargeAmount = Number(form.get("chargeAmount"));
+    if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
+      setError("Enter a shipment charge greater than zero");
+      return;
+    }
     setSaving(true);
     setError(null);
 
@@ -114,6 +125,7 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
           destinationFacilityId,
           customerId: String(form.get("customerId") ?? ""),
           driverId: driverId || null,
+          chargeAmount,
           notes: notes || undefined,
         }),
       });

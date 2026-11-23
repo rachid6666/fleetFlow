@@ -2,7 +2,7 @@
 
 Business logic defines who can perform an action, which conditions must be met, what changes, and what evidence is kept. In FleetFlow, it governs shipment creation, driver assignments, delivery progress, proof of delivery, and operational alerts.
 
-This document separates behavior found in the application code on **2026-11-18** from additional rules proposed for implementation. **Implemented** means the rule is present in code; it does not mean the scenarios below have been executed as tests. **Partial** means the workflow exists but a related check is missing. **Proposed** means the rule is not currently enforced.
+This document separates behavior found in the application code on **2026-11-23** from additional rules proposed for implementation. **Implemented** means the rule is present in code; it does not mean the scenarios below have been executed as tests. **Partial** means the workflow exists but a related check is missing. **Proposed** means the rule is not currently enforced.
 
 The operational policies in [the agent guide](../agent.md), including vehicle inspections, delivery geofences, and escalation thresholds, describe intended behavior. They must not be assumed to work until implemented in server-side actions.
 
@@ -10,18 +10,21 @@ The operational policies in [the agent guide](../agent.md), including vehicle in
 
 **Status: Implemented.** Permissions come from the authenticated session, and shipment ownership is checked on the server.
 
-| Business action | Admin | Driver | Customer |
-|---|---|---|---|
-| Create a shipment | Allowed | Not allowed | Not allowed |
-| Read shipments | All | Assigned shipments | Own shipments |
-| Assign or unassign a driver | Allowed | Not allowed | Not allowed |
-| Accept or reject an assignment | Not available through the driver response endpoint | Own pending assignment | Not allowed |
-| Change shipment status | Allowed, subject to the transition rules | Own accepted assignment | Not allowed |
-| Add notes or upload/read delivery proof | Allowed | Own accepted assignment | Not allowed |
-| Request a driver handover | Shipment with a current driver | Own assigned shipment | Not allowed |
-| Change driver availability | Any driver | Self only | Not allowed |
-| Submit GPS positions | Any shipment | Own assigned shipment | Not allowed |
-| View the live fleet map, analytics, or copilot | Allowed | Not allowed | Not allowed |
+| Business action | Admin | Sales | Driver | Customer |
+|---|---|---|---|---|
+| Create a customer shipment | Allowed | Allowed | Not allowed | Not allowed |
+| Set a shipment charge | Allowed | Allowed | Not allowed | Not allowed |
+| Read shipments | All | All | Assigned shipments | Own shipments |
+| Assign or unassign a driver | Allowed | Not allowed | Not allowed | Not allowed |
+| Accept or reject an assignment | Driver response endpoint only | Not allowed | Own pending assignment | Not allowed |
+| Change shipment status | Allowed, subject to transition rules | Not allowed | Own accepted assignment | Not allowed |
+| Add notes or upload/read delivery proof | Allowed | Not allowed | Own accepted assignment | Not allowed |
+| Record a payment | Allowed | Not allowed | Not allowed | Not allowed |
+| Request a driver handover | Shipment with a current driver | Not allowed | Own assigned shipment | Not allowed |
+| Change driver availability | Any driver | Not allowed | Self only | Not allowed |
+| Submit GPS positions | Any shipment | Not allowed | Own assigned shipment | Not allowed |
+| View the live fleet map and operations dashboard | Allowed | Allowed | Not allowed | Not allowed |
+| Use the operations copilot | Allowed | Not allowed | Not allowed | Not allowed |
 
 Driver and customer ownership use case-insensitive matching against the signed-in email. Customers receive tracking-safe fields and generic event descriptions; internal notes, driver identities, and delivery-proof metadata/files are excluded. Knowing a tracking code does not grant access to another customer's shipment.
 
@@ -29,20 +32,21 @@ Assignment acceptance is required for driver status changes, notes, and proof ac
 
 Sources: [access concept](access-concept.md), [shipment domain actions](../src/lib/data.ts), and [availability endpoint](../src/app/api/drivers/availability/route.ts).
 
-## 2. Shipment creation — BL-02
+## 2. Shipment creation - BL-02
 
-**Status: Implemented.** An admin creates a shipment only when:
+**Status: Implemented.** An admin or Sales user creates a customer shipment only when:
 
-- The origin and destination reference active branches, and they are different branches.
-- The customer exists and has the `CUSTOMER` role.
-- An optional initial driver exists and has the `DRIVER` role.
+- The origin and destination reference different U.S. facilities from Neon.
+- The customer exists in the synchronized Authentik projection and has the `CUSTOMER` role.
+- An optional initial driver exists and has the `DRIVER` role. Only admins can assign that driver.
+- A positive shipment charge is required by the current UI and accepted as USD.
 - Optional notes contain at most 2,000 characters.
 
-The server generates a tracking code, creates the shipment as `PENDING`, and records its creation in `StatusLog` in one transaction. The database requires a unique tracking code.
+The server generates a tracking code and creates the shipment as `PENDING`. In one transaction it writes the shipment, optional charge, initial `StatusLog`, and an initial `ShipmentLocationPing` at the origin. The database requires a unique tracking code.
 
-When a driver is supplied, `assignmentStatus` starts as `PENDING`. When no driver is supplied, the current implementation stores `assignmentStatus=ACCEPTED` with `driverId=null`. This is a storage convention, not evidence that a driver accepted the job; always check both fields when determining assignment readiness.
+When a driver is supplied, `assignmentStatus` starts as `PENDING`. When no driver is supplied, the current implementation stores `assignmentStatus=ACCEPTED` with `driverId=null`. This is a storage convention, not evidence that a driver accepted the job. Always check both fields when determining assignment readiness.
 
-Shipment creation does not currently populate route coordinates or `estimatedArrival`, even though those fields exist in the model. Selecting branches alone does not make a shipment appear on the live GPS map.
+Origin and destination coordinates come from the selected facilities. `estimatedArrival` remains optional and is not calculated during creation. The origin ping makes a newly created shipment appear immediately on the live map.
 
 Sources: [creation endpoint](../src/app/api/shipments/route.ts), `createShipment` in [data.ts](../src/lib/data.ts), and [shipment model](../prisma/schema.prisma).
 
@@ -128,7 +132,7 @@ GPS ingestion appends a position without changing shipment status or the shipmen
 | Completed map state | `status=DELIVERED` | Takes precedence over exception/stale feed presentation. |
 | Exception map state | `status=EXCEPTION` | Takes precedence over stale feed presentation. |
 
-The live map includes only shipments with at least one location ping. A shipment with no pings is not automatically shown as a stale GPS feed. A fresh ping does not clear the separate 24-hour shipment-update alert. Conversely, changing a note or assignment can refresh `updatedAt` without moving the shipment forward.
+The live map includes facility-based shipments even when they have no location pings. An undelivered shipment without telemetry is displayed at its origin, and a delivered shipment without telemetry is displayed at its destination. New shipments always receive an initial origin ping. A no-ping shipment is not counted as a stale GPS feed. A fresh ping does not clear the separate 24-hour shipment-update alert. Conversely, changing a note or assignment can refresh `updatedAt` without moving the shipment forward.
 
 Route progress uses straight-line geographic distance to the destination, not road routing. Undelivered shipments are capped at 99% progress; `DELIVERED` produces 100%. The map displays stored `estimatedArrival` values rather than recalculating them from speed or traffic. The ordinary shipment/customer view currently displays status labels such as `Not scheduled` instead of the stored ETA. An `on-track` map label therefore does not establish that a delivery will meet its promised time.
 
@@ -172,7 +176,7 @@ Sources: [shipment actions](../src/lib/data.ts), [handover actions](../src/lib/h
 | NEXT-11 | Prevent conflicting or duplicate actions | Recheck ownership, acceptance, and expected status/version when committing. If another request changed them, return a conflict instead of overwriting newer state. Add explicit request keys where retries could create duplicate shipments, uploads, or audit events; reuse with a different payload must fail. |
 | NEXT-12 | Measure delivery performance from business events | Use a dedicated delivery time and stored promised deadline for on-time performance. Track status activity separately from generic row updates so a note cannot reset the operational inactivity clock. Separate synthetic GPS demonstrations and historical dataset metrics from live operational KPIs. |
 
-Cancellation, returns, billing, and partial delivery remain outside the current lifecycle. They need separate states, authorization rules, and acceptance criteria before being added; do not encode them implicitly as a generic exception.
+Cancellation, returns, invoicing, refunds, write-offs, and partial delivery remain outside the current lifecycle. The implemented payment ledger records externally received amounts against an optional shipment charge, but it does not process cards or generate invoices. These broader finance workflows need separate states, authorization rules, and acceptance criteria.
 
 ## 10. Acceptance scenarios
 
@@ -180,12 +184,15 @@ These are specifications for future automated or manual checks, not a record of 
 
 | Scenario | Coverage | Expected result |
 |---|---|---|
-| Admin creates a shipment using the same origin and destination branch | Current: BL-02 | Reject; no shipment or creation audit row. |
-| Admin selects an inactive branch or a customer ID belonging to a driver | Current: BL-02 | Reject the invalid reference. |
+| Admin or Sales creates a shipment using the same origin and destination facility | Current: BL-02 | Reject; no shipment, audit, or GPS row. |
+| Admin or Sales selects an unknown facility or a customer ID belonging to a driver | Current: BL-02 | Reject the invalid reference. |
 | Customer requests another customer's tracking code | Current: BL-01 | Return `404`; disclose no shipment details. |
 | Assigned driver changes status before accepting | Current: BL-03/04 | Return `403`; status and audit history remain unchanged. |
 | Driver rejects a pending assignment | Current: BL-04 | Clear the assigned driver, retain shipment status, and append the rejection audit entry. |
 | Driver responds to an already accepted assignment | Current: BL-04 | Return `409`; do not create a second response event. |
+| Sales user creates a shipment with no driver ID | Current: BL-02 | Create a `PENDING` shipment with an origin ping and charge. |
+| Sales user attempts to assign a driver | Current: BL-01/02 | Return `403`; no shipment is created. |
+| Admin records a 25 USD cash payment followed by the remaining 100 USD by bank transfer on a 125 USD charge | Current: payment ledger | The ledger moves from partial to paid and the balance reaches zero. |
 | Authorized actor skips from `PENDING` directly to `DELIVERED` | Current: BL-03 | Return `422`; no status change. |
 | Driver uploads an oversized proof or a file with a mismatched type signature | Current: BL-05 | Return `413` or `415`, respectively; no proof metadata or upload audit event. |
 | Integration receives the same valid, already processed handover event twice | Current: BL-06 | Return the stored result on replay; exactly one reassignment and handover audit event. |

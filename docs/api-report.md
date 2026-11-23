@@ -5,7 +5,7 @@
 FleetFlow exposes application APIs through Next.js App Router route handlers under `src/app/api/`. The API layer is served by the same process as the web application.
 
 - Authentication and authorization use Auth.js with Authentik as the OIDC provider.
-- Session role claims are `ADMIN`, `DRIVER`, or `CUSTOMER`.
+- Session role claims are `ADMIN`, `SALES`, `DRIVER`, or `CUSTOMER`.
 - Prisma provides PostgreSQL access.
 - PostgreSQL is hosted externally in Neon; Docker runs the application and n8n but no local PostgreSQL container.
 - n8n integrates shipment handovers and team notifications.
@@ -31,8 +31,8 @@ Compose services communicate with each other by service name. Browser-facing cal
 
 1. FleetFlow redirects the browser to Authentik.
 2. Authentik authenticates the user and returns a profile and groups claim.
-3. Auth.js maps `FleetFlow Admins` to `ADMIN`, `FleetFlow Drivers` to `DRIVER`, and all other users to `CUSTOMER`.
-4. `/workspace` redirects the session to `/admin`, `/driver`, or `/customer`.
+3. Auth.js maps `FleetFlow Admins` to `ADMIN`, `FleetFlow Sales` to `SALES`, `FleetFlow Drivers` to `DRIVER`, and all other users to `CUSTOMER`.
+4. `/workspace` redirects the session to `/admin`, `/sales`, `/driver`, or `/customer`.
 
 The OIDC authorization request includes `openid`, `email`, `profile`, and `groups`. FleetFlow does not accept a password directly through the application API.
 
@@ -56,10 +56,10 @@ The OIDC authorization request includes `openid`, `email`, `profile`, and `group
 | Method | Endpoint | Access | Request | Success |
 |---|---|---|---|---|
 | `GET` | `/api/shipments` | Authenticated | None | `200` with `{ data, count }` |
-| `POST` | `/api/shipments` | Admin | JSON shipment details | `201` with `{ data }` |
-| `GET` | `/api/shipments/form-options` | Admin | None | `200` with U.S. facilities and synchronized Authentik drivers/customers |
+| `POST` | `/api/shipments` | Admin or Sales | JSON shipment details | `201` with `{ data }` |
+| `GET` | `/api/shipments/form-options` | Admin or Sales | None | `200` with U.S. facilities and synchronized Authentik drivers/customers |
 
-`GET /api/shipments` returns all shipments for admins, assigned shipments for drivers, and owned shipments for customers.
+`GET /api/shipments` returns all shipments for admins and Sales users, assigned shipments for drivers, and owned shipments for customers.
 
 Example `POST` body:
 
@@ -68,12 +68,17 @@ Example `POST` body:
   "originFacilityId": "FAC00015",
   "destinationFacilityId": "FAC00046",
   "customerId": "customer-id",
-  "driverId": "driver-id",
+  "driverId": null,
+  "chargeAmount": 1250.00,
   "notes": "Handle with care"
 }
 ```
 
-`originFacilityId` and `destinationFacilityId` must reference different U.S. facilities from Neon. Customer and driver IDs reference the synchronized Authentik identity projections. Notes are limited to 2,000 characters.
+`originFacilityId` and `destinationFacilityId` must reference different U.S. facilities from Neon. Customer and driver IDs reference the synchronized Authentik identity projections. `chargeAmount` is a positive USD value up to 100,000,000. Notes are limited to 2,000 characters.
+
+Admins may assign an optional driver. Sales users must send `driverId: null` or omit the field. The API rejects a driver assignment from a Sales session with HTTP `403`.
+
+Creation is transactional. It stores the shipment, initial `PENDING` audit event, optional charge, and an initial origin coordinate in `ShipmentLocationPing`. The shipment therefore appears on the live map immediately.
 
 ### Individual shipment
 
@@ -160,7 +165,7 @@ Rules:
 
 | Method | Endpoint | Access | Purpose |
 |---|---|---|---|
-| `GET` | `/api/tracking/live` | Admin | Live shipment telemetry and summary |
+| `GET` | `/api/tracking/live` | Admin or Sales | Live shipment telemetry and summary |
 | `POST` | `/api/tracking/pings` | Admin or assigned driver | Record a GPS ping |
 
 GPS ping body:
@@ -224,7 +229,37 @@ x-fleetflow-webhook-secret: <N8N_WEBHOOK_SECRET>
 
 The event ID is the idempotency key. Repeated events do not create duplicate shipment updates. The first processed event updates the assigned driver and creates audit information in a transaction.
 
-## 7. Operations copilot API
+## 7. Payment ledger API
+
+| Method | Endpoint | Access | Request | Success |
+|---|---|---|---|---|
+| `POST` | `/api/payments` | Admin | Shipment payment receipt | `201` with `{ data }` |
+
+Example body:
+
+```json
+{
+  "shipmentId": "shipment-id",
+  "amount": 250.00,
+  "method": "BANK_TRANSFER",
+  "reference": "BANK-2026-001"
+}
+```
+
+Validation and behavior:
+
+- `amount` must be greater than zero and no more than 100,000,000.
+- `method` is one of `CASH`, `BANK_TRANSFER`, `CARD`, or `OTHER`.
+- `reference` is optional and limited to 200 characters.
+- The shipment must exist.
+- When a shipment has a `chargeAmount`, payments cannot exceed the remaining balance.
+- Payment rows are append-only and record the signed-in admin email.
+- `currency` is currently fixed to `USD`.
+- The endpoint records externally completed payments. It does not initiate card charges, transfers, or refunds.
+
+The admin UI is available at `/admin/payments`. It shows total charged, collected, outstanding, unpaid shipment count, payment state, and per-shipment balance. The Sales dashboard can read receivables but cannot call this mutation endpoint.
+
+## 8. Operations copilot API
 
 | Method | Endpoint | Access | Purpose |
 |---|---|---|---|
@@ -255,7 +290,7 @@ The route:
 - Returns `rules-fallback` with concise operational recommendations when Ollama is unavailable.
 - Uses a system prompt requiring answers to come from the supplied snapshot and forbidding fabricated shipment data.
 
-## 8. Superset analytics API
+## 9. Superset analytics API
 
 | Method | Endpoint | Access | Purpose |
 |---|---|---|---|
@@ -264,7 +299,7 @@ The route:
 
 The route logs into Superset using service credentials, obtains a CSRF session, and requests a dashboard guest token. Missing configuration returns HTTP `503`; Superset authentication or upstream failures return HTTP `502`.
 
-## 9. Health API
+## 10. Health API
 
 | Method | Endpoint | Access | Purpose |
 |---|---|---|---|
@@ -290,7 +325,7 @@ If PostgreSQL is unavailable, the route returns HTTP `503`:
 }
 ```
 
-## 10. n8n and external integration surfaces
+## 11. n8n and external integration surfaces
 
 ### n8n workflows
 
@@ -314,25 +349,28 @@ The project exports two workflows:
 | Superset | `SUPERSET_SERVER_URL`, `SUPERSET_USERNAME`, `SUPERSET_PASSWORD` | Analytics login and embedded guest tokens |
 | Ollama | `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_FALLBACK_MODEL` | Local operations copilot |
 
-## 11. Role permissions
+## 12. Role permissions
 
-| Capability | Admin | Driver | Customer |
-|---|---|---|---|
-| List all shipments | Yes | Assigned only | Owned only |
-| Create shipments | Yes | No | No |
-| Change shipment status | Yes | Assigned accepted only | No |
-| Assign/reassign driver | Yes | No | No |
-| Accept/reject assignment | No | Yes, assigned only | No |
-| Add delivery notes | Yes | Assigned accepted only | No |
-| Upload/retrieve delivery proof | Yes | Assigned accepted only | No |
-| Record GPS ping | Yes | Assigned only | No |
-| View live tracking | Yes | No | No |
-| Use operations copilot | Yes | No | No |
-| Obtain Superset guest token | Yes | No | No |
-| Enter tracking code | Not customer role | Not customer role | Yes, owned only |
-| Initiate handover | Yes, any shipment | Assigned shipment only | No |
+| Capability | Admin | Sales | Driver | Customer |
+|---|---|---|---|---|
+| List all shipments | Yes | Yes | Assigned only | Owned only |
+| Create customer shipments | Yes | Yes | No | No |
+| Set a shipment charge | Yes | Yes | No | No |
+| View live tracking | Yes | Yes | No | No |
+| View sales/receivables dashboard | Yes | Yes | No | No |
+| Record payments | Yes | No | No | No |
+| Assign/reassign driver | Yes | No | No | No |
+| Change shipment status | Yes | No | Assigned accepted only | No |
+| Accept/reject assignment | No | No | Yes, assigned only | No |
+| Add delivery notes | Yes | No | Assigned accepted only | No |
+| Upload/retrieve delivery proof | Yes | No | Assigned accepted only | No |
+| Record GPS ping | Yes | No | Assigned only | No |
+| Use operations copilot | Yes | No | No | No |
+| Obtain Superset guest token | Yes | No | No | No |
+| View shipment detail | Yes | Yes | Assigned only | Owned only |
+| Initiate handover | Yes, any shipment | No | Assigned shipment only | No |
 
-## 12. Customer tracking behavior
+## 13. Customer tracking behavior
 
 The customer portal now provides a tracking-code lookup rather than a general shipment list or export.
 
@@ -344,7 +382,7 @@ The customer portal now provides a tracking-code lookup rather than a general sh
 - A code assigned to another customer is not disclosed to the requesting customer.
 - The returned view contains route, status, estimated arrival, last update, and customer-safe timeline events.
 
-## 13. Security observations
+## 14. Security observations
 
 1. API mutations verify both role and shipment ownership where relevant.
 2. Zod schemas reject malformed JSON and unexpected fields.
@@ -356,8 +394,10 @@ The customer portal now provides a tracking-code lookup rather than a general sh
 8. The integration handover event uses a database unique ID for idempotency.
 9. Public health access is appropriate, but operational data routes must remain authenticated.
 10. Customer tracking is ownership-filtered server-side, not only hidden by UI.
+11. Sales shipment creation is role-checked in the API and cannot assign drivers.
+12. Payment mutations require an admin session and record the acting admin.
 
-## 14. Recommended API improvements
+## 15. Recommended API improvements
 
 - Add an OpenAPI/Swagger specification and generated API documentation.
 - Add machine-readable request and response schemas for all route handlers.

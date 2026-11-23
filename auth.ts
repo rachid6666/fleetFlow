@@ -8,14 +8,15 @@ type AuthentikProfile = {
   groups?: string[];
 };
 
-type UserRole = "ADMIN" | "DRIVER" | "CUSTOMER";
+type UserRole = "ADMIN" | "SALES" | "DRIVER" | "CUSTOMER";
 
 function isUserRole(role: unknown): role is UserRole {
-  return role === "ADMIN" || role === "DRIVER" || role === "CUSTOMER";
+  return role === "ADMIN" || role === "SALES" || role === "DRIVER" || role === "CUSTOMER";
 }
 
 function roleFromGroups(groups: string[] = []) {
   if (groups.includes(process.env.AUTHENTIK_ADMIN_GROUP ?? "FleetFlow Admins")) return "ADMIN" as const;
+  if (groups.includes(process.env.AUTHENTIK_SALES_GROUP ?? "FleetFlow Sales")) return "SALES" as const;
   if (groups.includes(process.env.AUTHENTIK_DRIVER_GROUP ?? "FleetFlow Drivers")) return "DRIVER" as const;
   return "CUSTOMER" as const;
 }
