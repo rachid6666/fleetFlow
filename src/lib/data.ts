@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { assertTransition } from "./shipment-rules";
 import { prisma } from "./prisma";
 import type { AppRole } from "./roles";
-import type { CustomerShipment, Shipment, ShipmentEvent } from "./types";
+import type { CustomerShipment, FacilityMapLocation, Shipment, ShipmentEvent } from "./types";
 
 const shipmentInclude = {
   driver: { select: { id: true, name: true, email: true } },
@@ -509,6 +509,55 @@ export async function getLogisticsDashboard() {
     safetyIncidents,
     recentLoads,
   };
+}
+
+export async function getFacilityMapLocations(): Promise<FacilityMapLocation[]> {
+  const facilities = await prisma.kaggleFacility.findMany({
+    where: {
+      latitude: { gte: 18, lte: 72 },
+      longitude: { gte: -180, lte: -65 },
+    },
+    select: {
+      facilityName: true,
+      facilityType: true,
+      city: true,
+      state: true,
+      latitude: true,
+      longitude: true,
+      dockDoors: true,
+    },
+    orderBy: [{ state: "asc" }, { city: "asc" }, { facilityName: "asc" }],
+  });
+
+  const locations = new Map<string, FacilityMapLocation>();
+
+  for (const facility of facilities) {
+    const id = `${facility.state}-${facility.city}`;
+    const existing = locations.get(id);
+    if (existing) {
+      existing.facilityCount += 1;
+      existing.dockDoors += facility.dockDoors;
+      if (!existing.facilityTypes.includes(facility.facilityType)) {
+        existing.facilityTypes.push(facility.facilityType);
+      }
+      continue;
+    }
+
+    locations.set(id, {
+      id,
+      city: facility.city,
+      state: facility.state,
+      latitude: Number(facility.latitude),
+      longitude: Number(facility.longitude),
+      facilityCount: 1,
+      dockDoors: facility.dockDoors,
+      facilityTypes: [facility.facilityType],
+    });
+  }
+
+  return [...locations.values()].sort(
+    (a, b) => a.state.localeCompare(b.state) || a.city.localeCompare(b.city),
+  );
 }
 
 export async function getShipmentAlerts(now = new Date()) {

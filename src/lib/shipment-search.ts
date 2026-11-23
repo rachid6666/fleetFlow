@@ -1,4 +1,4 @@
-import { statusLabels, type AssignmentStatus, type ShipmentStatus } from "./types";
+import { statusLabels, type AssignmentStatus, type CustomerShipment, type ShipmentStatus } from "./types";
 
 export type ShipmentSearchParams = Record<string, string | string[] | undefined>;
 
@@ -81,4 +81,23 @@ export function shipmentSearchParams(filters: ShipmentFilters, page?: number) {
   }
   if (page !== undefined) search.set("page", String(page));
   return search.toString();
+}
+
+export function customerShipmentsCsv(shipments: CustomerShipment[]) {
+  const headers = ["Tracking code", "Status", "Origin", "Destination", "Created at", "Updated at", "ETA"];
+  const quote = (value: string | number) => {
+    const text = String(value);
+    const guarded = /^[\s]*[=+\-@]/.test(text) ? `'${text}` : text;
+    return `"${guarded.replace(/"/g, '""')}"`;
+  };
+  const rows = shipments.map((shipment) => [
+    shipment.trackingCode,
+    statusLabels[shipment.status],
+    shipment.origin,
+    shipment.destination,
+    shipment.createdAt,
+    shipment.updatedAt,
+    shipment.eta,
+  ].map(quote).join(","));
+  return `\uFEFF${headers.map(quote).join(",")}\r\n${rows.join("\r\n")}`;
 }

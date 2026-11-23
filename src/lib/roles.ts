@@ -9,7 +9,7 @@ export function workspacePathForRole(role: AppRole): Route {
 }
 
 export function workspaceLabelForRole(role: AppRole) {
-  if (role === "ADMIN") return "ADMIN CONSOLE";
+  if (role === "ADMIN") return "CEO PANEL";
   if (role === "DRIVER") return "DRIVER WORKSPACE";
   return "CUSTOMER PORTAL";
 }

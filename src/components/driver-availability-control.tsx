@@ -9,10 +9,12 @@ export function DriverAvailabilityControl({
   driverId,
   current,
   canSelectDriver = false,
+  driverName,
 }: {
   driverId?: string;
   current: Availability;
   canSelectDriver?: boolean;
+  driverName?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(current);
@@ -44,7 +46,7 @@ export function DriverAvailabilityControl({
   return (
     <div className="availability-control">
       <select
-        aria-label="Driver availability"
+        aria-label={driverName ? `Availability for ${driverName}` : "Driver availability"}
         value={value}
         disabled={saving}
         onChange={(event) => update(event.target.value as Availability)}

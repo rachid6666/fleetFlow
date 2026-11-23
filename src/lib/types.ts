@@ -81,6 +81,8 @@ export type LiveShipment = {
   driverName: string | null;
   customerName: string;
   latestPoint: TrackingPoint;
+  originPoint: { latitude: number; longitude: number } | null;
+  destinationPoint: { latitude: number; longitude: number } | null;
   trail: TrackingPoint[];
   progressPercent: number;
   distanceMiles: number;
@@ -102,6 +104,17 @@ export type LiveTrackingData = {
   shipments: LiveShipment[];
   summary: LiveTrackingSummary;
   generatedAt: string;
+};
+
+export type FacilityMapLocation = {
+  id: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  facilityCount: number;
+  dockDoors: number;
+  facilityTypes: string[];
 };
 
 export type CopilotSnapshot = {

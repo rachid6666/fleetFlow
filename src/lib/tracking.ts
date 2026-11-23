@@ -78,6 +78,8 @@ export async function getLiveTrackingData(): Promise<LiveTrackingData> {
         driverName: record.driver?.name ?? null,
         customerName: record.customer.name,
         latestPoint,
+        originPoint: origin,
+        destinationPoint: destination,
         trail,
         progressPercent,
         distanceMiles: Math.round(totalDistance),

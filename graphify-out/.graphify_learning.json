@@ -1,5 +1,166 @@
 {
-  "generated_at": "2026-11-18T22:12:56.617138+00:00",
-  "nodes": {},
+  "generated_at": "2026-11-23T14:15:48.866511+00:00",
+  "nodes": {
+    "auth_rolefromgroups": {
+      "code_fingerprint": "c5087d4bff6bec5c4ea65c347180a719c7f462a9b64791fefec31ccd10cdfb80",
+      "label": "roleFromGroups()",
+      "last": "2026-11-23T13:27:20.154884+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T13:27:20.154884+00:00",
+          "outcome": "useful",
+          "q": "im trying to log in to admin but got issues 303"
+        }
+      ],
+      "score": 0.999222461,
+      "source_file": "auth.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "docker_compose_environment_authentik_issuer": {
+      "code_fingerprint": "448f0e3ac61d9b0c903537354100f8618c55a20409e32f2773cff8764bce25a9",
+      "label": "AUTHENTIK_ISSUER",
+      "last": "2026-11-23T13:27:20.154884+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T13:27:20.154884+00:00",
+          "outcome": "useful",
+          "q": "im trying to log in to admin but got issues 303"
+        }
+      ],
+      "score": 0.999222461,
+      "source_file": "docker-compose.yml",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_admin_drivers_page_driverspage": {
+      "code_fingerprint": "17cf686d12045bc4b1088afb3d2c1c0c1a2f435347acbaaa257f8d6d66ac5c2b",
+      "label": "DriversPage()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/app/admin/drivers/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_admin_page_adminpage": {
+      "code_fingerprint": "96056dba5ff1790fd48b38ca6476154662afff3c1d8aef8e7bf9924668ad02d6",
+      "label": "AdminPage()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/app/admin/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_admin_shipments_page_shipmentspage": {
+      "code_fingerprint": "111ae995d4ffe29ea7f852e9a0b4937e40ea9e75d49c2cf9c01d42a457d702fd",
+      "label": "ShipmentsPage()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/app/admin/shipments/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_globals": {
+      "code_fingerprint": "",
+      "label": "src_app_globals",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_app_login_page_loginpage": {
+      "code_fingerprint": "06f637a8dfa6e0493d404272e67c9b4824e4dca6332214194cec6087fad710fd",
+      "label": "LoginPage()",
+      "last": "2026-11-23T13:27:20.154884+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T13:27:20.154884+00:00",
+          "outcome": "useful",
+          "q": "im trying to log in to admin but got issues 303"
+        }
+      ],
+      "score": 0.999222461,
+      "source_file": "src/app/login/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_components_sidebar_navigation_sidebarnavigation": {
+      "code_fingerprint": "236dc1f04ae41273d6aecc15da9ff5436d0dc92f56e1175065d986d9cafced7e",
+      "label": "SidebarNavigation()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/components/sidebar-navigation.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_components_sidebar_sidebar": {
+      "code_fingerprint": "5cbf179020ec251d21ca0bb22c9677529beae4d3ce9693f417ba90d483d1986b",
+      "label": "Sidebar()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/components/sidebar.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_lib_data_getlogisticsdashboard": {
+      "code_fingerprint": "1f6c655aa9eeb691b217aea34973241c2949cfbe53dd283449a1eedde9822297",
+      "label": "getLogisticsDashboard()",
+      "last": "2026-11-23T14:09:40.473363+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-23T14:09:40.473363+00:00",
+          "outcome": "useful",
+          "q": "Map FleetFlow admin dashboard, shared shell, styling, and table pages before UI redesign"
+        }
+      ],
+      "score": 0.99990149,
+      "source_file": "src/lib/data.ts",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
   "version": 1
 }

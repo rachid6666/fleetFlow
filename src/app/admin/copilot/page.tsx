@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "../../../../auth";
+import { PageHeader } from "@/components/admin-ui";
 import { Sidebar } from "@/components/sidebar";
 import { CopilotClient } from "@/components/copilot-client";
 import { getOperationsSnapshot } from "@/lib/tracking";
@@ -14,15 +15,13 @@ export default async function CopilotPage() {
   return (
     <div className="app-shell">
       <Sidebar />
-      <main className="main copilot-page">
-        <div className="topbar">
-          <div>
-            <div className="eyebrow">Operations intelligence · grounded in FleetFlow data</div>
-            <h1>AI operations copilot</h1>
-            <p className="subtitle">Ask about live shipments, exceptions, delivery performance, fleet costs, and network capacity.</p>
-          </div>
-          <span className="status-badge status-delivered">Admin only</span>
-        </div>
+      <main className="main admin-page copilot-page">
+        <PageHeader
+          eyebrow="Operations intelligence · Grounded in FleetFlow data"
+          title="AI operations copilot"
+          description="Ask about live shipments, exceptions, delivery performance, fleet costs, and network capacity."
+          actions={<span className="admin-only-label">CEO only</span>}
+        />
         <CopilotClient snapshot={snapshot} />
       </main>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ShipmentFormOptions } from "@/lib/data";
 
 export function CreateShipmentButton({ options }: { options: ShipmentFormOptions }) {
@@ -10,6 +10,22 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = window.requestAnimationFrame(() => {
+      dialogRef.current?.querySelector<HTMLElement>("[autofocus]")?.focus();
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
+    };
+  }, [open]);
 
   function showDialog() {
     setError(null);
@@ -21,6 +37,30 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
     if (saving) return;
     setError(null);
     setOpen(false);
+  }
+
+  function handleDialogKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDialog();
+      return;
+    }
+    if (event.key !== "Tab" || !dialogRef.current) return;
+
+    const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -68,6 +108,7 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
     <div className="create-shipment-control">
       {notice ? <span className="shipment-form-notice" role="status">{notice}</span> : null}
       <button
+        ref={triggerRef}
         className="button"
         type="button"
         aria-haspopup="dialog"
@@ -80,19 +121,19 @@ export function CreateShipmentButton({ options }: { options: ShipmentFormOptions
       {open ? (
         <div className="modal-backdrop">
           <section
+            ref={dialogRef}
             className="shipment-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-shipment-title"
-            onKeyDown={(event) => {
-              if (event.key === "Escape") closeDialog();
-            }}
+            aria-describedby="create-shipment-description"
+            onKeyDown={handleDialogKeyDown}
           >
             <div className="shipment-modal-heading">
               <div>
                 <div className="eyebrow">New shipment</div>
                 <h2 id="create-shipment-title">Create shipment</h2>
-                <p>Choose the route and customer. A tracking code will be generated automatically.</p>
+                <p id="create-shipment-description">Choose the route and customer. A tracking code will be generated automatically.</p>
               </div>
               <button
                 className="modal-close"
