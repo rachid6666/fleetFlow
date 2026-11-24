@@ -19,6 +19,7 @@ const roleLinks: Record<AppRole, Array<{ href: Route; label: string; icon: Navig
   ],
   SALES: [
     { href: "/sales" as Route, label: "Sales dashboard", icon: "analytics" },
+    { href: "/sales/payments" as Route, label: "Payments", icon: "payments" },
   ],
   DRIVER: [
     { href: "/driver" as Route, label: "My trips", icon: "shipments" },

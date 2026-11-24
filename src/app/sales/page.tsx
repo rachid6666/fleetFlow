@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader, PanelHeading, TableFrame } from "@/components/admin-ui";
 import { CreateShipmentButton } from "@/components/create-shipment-button";
 import { LiveTrackingMap } from "@/components/live-tracking-map";
@@ -154,7 +155,7 @@ export default async function SalesDashboardPage() {
               <PanelHeading
                 eyebrow="Receivables watch"
                 title="Open balances"
-                action={<span className="alert-count">{ledger.summary.unpaidShipments}</span>}
+                action={<Link href="/sales/payments">View ledger {"->"}</Link>}
               />
               <div className="sales-balance-list">
                 {outstanding.map((item) => (

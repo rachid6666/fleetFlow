@@ -177,7 +177,7 @@ export function CreateShipmentButton({
               <div>
                 <div className="eyebrow">New shipment</div>
                 <h2 id="create-shipment-title">Create shipment</h2>
-                <p id="create-shipment-description">Choose the U.S. storage locations and customer. A tracking code will be generated automatically.</p>
+                <p id="create-shipment-description">Choose the U.S. storage locations, customer, and shipment charge. A tracking code will be generated automatically.</p>
               </div>
               <button
                 className="modal-close"
@@ -213,7 +213,7 @@ export function CreateShipmentButton({
                   </select>
                 </label>
 
-<label className="form-field">
+                <label className="form-field">
                   <span>Destination storage location</span>
                   <select name="destinationFacilityId" required defaultValue={defaultDestinationLocation?.id ?? ""}>
                     <option value="" disabled>Select destination location</option>
@@ -237,16 +237,32 @@ export function CreateShipmentButton({
                   </select>
                 </label>
 
+                {allowDriverAssignment ? (
+                  <label className="form-field">
+                    <span>Driver <small>optional</small></span>
+                    <select name="driverId" defaultValue="">
+                      <option value="">Leave unassigned</option>
+                      {formOptions.drivers.map((driver) => (
+                        <option key={driver.id} value={driver.id}>
+                          {driver.name} | {driver.email}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+
                 <label className="form-field">
-                  <span>Driver <small>optional</small></span>
-                  <select name="driverId" defaultValue="">
-                    <option value="">Leave unassigned</option>
-                    {formOptions.drivers.map((driver) => (
-                      <option key={driver.id} value={driver.id}>
-                        {driver.name} · {driver.email}
-                      </option>
-                    ))}
-                  </select>
+                  <span>Shipment charge <small>USD</small></span>
+                  <input
+                    name="chargeAmount"
+                    type="number"
+                    min="0.01"
+                    max="100000000"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    required
+                  />
                 </label>
               </div>
 
